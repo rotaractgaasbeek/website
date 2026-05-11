@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-label="Clubdiner van Rotaract Gaasbeek">
+  <rect width="960" height="720" fill="#F7F3EE"/>
+  <rect x="0" y="0" width="960" height="180" fill="#222B36"/>
+  <circle cx="478" cy="86" r="78" fill="#FFF2D2"/>
+  <rect x="0" y="180" width="960" height="540" fill="#EAE6DE"/>
+  <rect x="80" y="230" width="800" height="130" rx="8" fill="#31343B"/>
+  <rect x="154" y="260" width="652" height="410" rx="8" fill="#FFFFFF"/>
+  <path d="M184 300h592l60 330H124Z" fill="#FDFDFD"/>
+  <path d="M302 300h356l28 330H274Z" fill="#F4F0E8"/>
+  <g fill="#E7B08D">
+    <circle cx="145" cy="348" r="34"/><circle cx="220" cy="330" r="32"/><circle cx="302" cy="318" r="32"/><circle cx="386" cy="310" r="32"/>
+    <circle cx="574" cy="310" r="32"/><circle cx="658" cy="318" r="32"/><circle cx="740" cy="330" r="32"/><circle cx="815" cy="348" r="34"/>
+  </g>
+  <g fill="#17212C">
+    <path d="M104 386h82l22 160H78Z"/><path d="M184 366h76l24 150H154Z"/><path d="M270 356h72l22 142H240Z"/><path d="M352 348h70l20 136H322Z"/>
+    <path d="M538 348h70l-20 136h120Z"/><path d="M620 356h72l-22 142h124Z"/><path d="M700 366h76l-24 150h130Z"/><path d="M774 386h82l26 160H752Z"/>
+  </g>
+  <g fill="#B7C6D7">
+    <rect x="350" y="365" width="18" height="92" rx="9"/><rect x="410" y="352" width="18" height="108" rx="9"/><rect x="470" y="370" width="18" height="90" rx="9"/><rect x="530" y="352" width="18" height="108" rx="9"/><rect x="590" y="365" width="18" height="92" rx="9"/>
+  </g>
+  <g fill="#D41367">
+    <circle cx="354" cy="472" r="14"/><circle cx="426" cy="485" r="14"/><circle cx="498" cy="470" r="14"/><circle cx="570" cy="485" r="14"/><circle cx="642" cy="472" r="14"/>
+  </g>
+  <rect x="0" y="600" width="960" height="120" fill="#D41367" opacity="0.12"/>
+</svg>

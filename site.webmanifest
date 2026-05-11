@@ -1,0 +1,20 @@
+{
+  "name": "Rotaract Gaasbeek Pajottenland",
+  "short_name": "Rotaract",
+  "description": "Rotaract Gaasbeek Pajottenland brengt jonge mensen samen voor service, vriendschap en lokale impact.",
+  "icons": [
+    {
+      "src": "assets/images/rotaract-favicon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/images/rotaract-favicon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "theme_color": "#D41367",
+  "background_color": "#ffffff",
+  "display": "standalone"
+}

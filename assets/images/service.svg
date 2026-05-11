@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-label="Serviceproject en lokale actie">
+  <rect width="960" height="720" fill="#E6F3EF"/>
+  <path d="M0 520c130-76 276-108 438-96 180 14 340-22 522-112v408H0Z" fill="#1A7C64" opacity="0.34"/>
+  <path d="M86 548c142-48 274-50 398-8 162 55 302 42 420-38v218H86Z" fill="#1A7C64"/>
+  <rect x="164" y="250" width="632" height="206" rx="8" fill="#FFFFFF"/>
+  <rect x="200" y="288" width="144" height="130" fill="#F3B23C"/>
+  <rect x="398" y="288" width="164" height="130" fill="#D41367"/>
+  <rect x="616" y="288" width="144" height="130" fill="#123C69"/>
+  <path d="M270 190c-44 58-66 106-66 144 0 68 44 122 100 122 55 0 98-54 98-122 0-38-22-86-66-144-20-26-46-26-66 0Z" fill="#1A7C64"/>
+  <path d="M624 198c-40 52-60 96-60 132 0 62 40 112 92 112 50 0 90-50 90-112 0-36-20-80-60-132-18-24-44-24-62 0Z" fill="#1A7C64"/>
+  <g fill="#E7B08D">
+    <circle cx="390" cy="202" r="38"/><circle cx="480" cy="190" r="40"/><circle cx="570" cy="202" r="38"/>
+  </g>
+  <g fill="#17212C">
+    <path d="M350 240h80l22 122H328Z"/><path d="M436 232h88l24 130H410Z"/><path d="M532 240h80l22 122H510Z"/>
+  </g>
+</svg>

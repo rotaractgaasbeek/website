@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-label="Clubvergadering van Rotaract Gaasbeek">
+  <rect width="960" height="720" fill="#EAE2D7"/>
+  <path d="M0 0h960v260H0Z" fill="#EFE7DC"/>
+  <g fill="none" stroke="#8D6038" stroke-width="26" stroke-linecap="round">
+    <path d="M55 170 244 20 440 170 636 20 910 238"/>
+    <path d="M0 292h960"/>
+    <path d="M180 0 468 270 760 0"/>
+  </g>
+  <rect x="150" y="395" width="190" height="88" rx="8" fill="#8A5634"/>
+  <rect x="390" y="385" width="190" height="88" rx="8" fill="#8A5634"/>
+  <rect x="630" y="395" width="190" height="88" rx="8" fill="#8A5634"/>
+  <rect x="690" y="238" width="170" height="116" rx="8" fill="#17212C"/>
+  <rect x="708" y="256" width="134" height="80" fill="#D41367"/>
+  <g fill="#E7B08D">
+    <circle cx="132" cy="365" r="33"/><circle cx="224" cy="340" r="33"/><circle cx="330" cy="352" r="33"/><circle cx="430" cy="335" r="33"/><circle cx="528" cy="352" r="33"/><circle cx="652" cy="340" r="33"/><circle cx="770" cy="365" r="33"/>
+  </g>
+  <g fill="#17212C">
+    <path d="M90 398h82l22 145H70Z"/><path d="M184 375h82l22 150H158Z"/><path d="M290 388h82l22 138H268Z"/>
+    <path d="M392 368h82l22 148H368Z"/><path d="M490 388h82l22 138H468Z"/><path d="M610 375h82l22 150H584Z"/><path d="M728 398h82l22 145H708Z"/>
+  </g>
+  <circle cx="795" cy="214" r="20" fill="#F3B23C"/>
+  <path d="M0 598h960v122H0Z" fill="#123C69" opacity="0.18"/>
+</svg>

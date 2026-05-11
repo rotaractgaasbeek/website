@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 720" role="img" aria-label="Wijnactie en marktstand van Rotaract Gaasbeek">
+  <rect width="960" height="720" fill="#EEF2F5"/>
+  <path d="M0 0h960v190H0Z" fill="#F7F8FA"/>
+  <path d="M80 128h800l66 210H14Z" fill="#FFFFFF"/>
+  <rect x="55" y="305" width="850" height="265" rx="8" fill="#FFFFFF"/>
+  <rect x="65" y="420" width="830" height="130" fill="#F7A7C8"/>
+  <rect x="82" y="550" width="796" height="36" fill="#D41367" opacity="0.25"/>
+  <g fill="#123C69">
+    <rect x="636" y="342" width="92" height="186" rx="8"/><rect x="752" y="342" width="92" height="186" rx="8"/>
+  </g>
+  <g fill="#17212C">
+    <rect x="198" y="360" width="28" height="132" rx="12"/><rect x="250" y="362" width="28" height="130" rx="12"/><rect x="302" y="360" width="28" height="132" rx="12"/>
+    <rect x="386" y="358" width="28" height="134" rx="12"/><rect x="438" y="360" width="28" height="132" rx="12"/><rect x="490" y="358" width="28" height="134" rx="12"/>
+  </g>
+  <g fill="#D41367">
+    <rect x="196" y="402" width="32" height="26"/><rect x="248" y="404" width="32" height="26"/><rect x="300" y="402" width="32" height="26"/>
+    <rect x="384" y="400" width="32" height="26"/><rect x="436" y="402" width="32" height="26"/><rect x="488" y="400" width="32" height="26"/>
+  </g>
+  <g fill="#E7B08D">
+    <circle cx="280" cy="245" r="40"/><circle cx="392" cy="252" r="38"/><circle cx="500" cy="244" r="40"/><circle cx="606" cy="252" r="38"/>
+  </g>
+  <g fill="#59616B">
+    <path d="M232 285h96l28 122H204Z"/><path d="M348 290h88l26 118H322Z"/><path d="M452 282h96l28 126H424Z"/><path d="M562 290h88l28 118H536Z"/>
+  </g>
+  <circle cx="116" cy="338" r="54" fill="#1A7C64"/>
+  <path d="M116 300v76M78 338h76" stroke="#FFFFFF" stroke-width="15" stroke-linecap="round"/>
+  <rect x="0" y="610" width="960" height="110" fill="#1A7C64" opacity="0.18"/>
+</svg>

@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Oldtimer en GT rally illustratie">
+  <defs>
+    <linearGradient id="road" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123C69"/>
+      <stop offset="1" stop-color="#18212C"/>
+    </linearGradient>
+    <linearGradient id="sun" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#F3B23C"/>
+      <stop offset="1" stop-color="#D41367"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="#F6F8FB"/>
+  <circle cx="965" cy="150" r="86" fill="url(#sun)" opacity="0.9"/>
+  <path d="M0 480c160-70 285-92 430-62 162 33 314 10 456-70 122-69 232-78 314-40v492H0Z" fill="#D9EEF7"/>
+  <path d="M0 615c226-78 424-80 596-7 202 86 397 78 604-24v216H0Z" fill="url(#road)"/>
+  <path d="M492 800 620 525h54l66 275Z" fill="#FFFFFF" opacity="0.32"/>
+  <path d="M105 446h292l58 92h147l60-92h283c45 0 84 27 101 69l37 89H74l31-158Z" fill="#D41367"/>
+  <path d="M190 363h273c50 0 98 19 135 53l40 37H117Z" fill="#FFFFFF"/>
+  <path d="M646 363h166c48 0 94 18 129 51l42 39H640Z" fill="#FFFFFF"/>
+  <circle cx="255" cy="621" r="74" fill="#111820"/>
+  <circle cx="255" cy="621" r="34" fill="#E5E8ED"/>
+  <circle cx="871" cy="621" r="74" fill="#111820"/>
+  <circle cx="871" cy="621" r="34" fill="#E5E8ED"/>
+  <rect x="458" y="526" width="184" height="34" rx="17" fill="#FFFFFF" opacity="0.85"/>
+  <path d="M180 268c118-58 244-58 378 0s257 58 370 0" fill="none" stroke="#D41367" stroke-width="16" stroke-linecap="round" opacity="0.25"/>
+  <text x="82" y="150" fill="#18212C" font-family="Arial, sans-serif" font-size="72" font-weight="800">Oldtimer &amp; GT Rally</text>
+  <text x="86" y="214" fill="#66707C" font-family="Arial, sans-serif" font-size="34" font-weight="700">Rotaract Gaasbeek</text>
+</svg>

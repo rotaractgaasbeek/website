@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-label="Kidsday illustratie">
+  <rect width="1200" height="800" fill="#FBE8F1"/>
+  <circle cx="1020" cy="130" r="82" fill="#F3B23C"/>
+  <path d="M0 560c144-82 291-104 442-66 198 50 360 25 520-76 100-64 181-83 238-56v438H0Z" fill="#D9EEF7"/>
+  <path d="M0 642c160-54 324-58 492-12 226 62 462 42 708-61v231H0Z" fill="#1A7C64"/>
+  <g fill="#D41367">
+    <circle cx="310" cy="344" r="78"/><circle cx="522" cy="312" r="86"/><circle cx="742" cy="344" r="78"/>
+  </g>
+  <g fill="#F7C6A0">
+    <circle cx="310" cy="324" r="48"/><circle cx="522" cy="288" r="52"/><circle cx="742" cy="324" r="48"/>
+  </g>
+  <g fill="#123C69">
+    <path d="M238 390h144l44 210H194Z"/><path d="M438 355h168l58 245H384Z"/><path d="M670 390h144l54 210H626Z"/>
+  </g>
+  <path d="M222 244c88-72 173-72 254 0M632 244c88-72 173-72 254 0" fill="none" stroke="#F3B23C" stroke-width="18" stroke-linecap="round"/>
+  <text x="102" y="135" fill="#18212C" font-family="Arial, sans-serif" font-size="80" font-weight="800">Kidsday</text>
+  <text x="106" y="196" fill="#66707C" font-family="Arial, sans-serif" font-size="36" font-weight="700">25 mei 2026</text>
+</svg>
