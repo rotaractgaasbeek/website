@@ -25,20 +25,198 @@ document.querySelectorAll(".nav__link").forEach((link) => {
   }
 });
 
-document.querySelectorAll("[data-calendar-filter]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const filter = button.getAttribute("data-calendar-filter");
+const calendarTitle = document.querySelector("[data-calendar-title]");
+const calendarBoard = document.querySelector("[data-calendar-board]");
+const calendarAgenda = document.querySelector("[data-calendar-agenda]");
+const calendarPrev = document.querySelector("[data-calendar-prev]");
+const calendarNext = document.querySelector("[data-calendar-next]");
 
-    document.querySelectorAll("[data-calendar-filter]").forEach((item) => {
-      item.setAttribute("aria-pressed", String(item === button));
-    });
+const monthNames = [
+  "Januari",
+  "Februari",
+  "Maart",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Augustus",
+  "September",
+  "Oktober",
+  "November",
+  "December",
+];
 
-    document.querySelectorAll("[data-calendar-item]").forEach((item) => {
-      const type = item.getAttribute("data-calendar-item");
-      item.hidden = filter !== "alles" && type !== filter;
-    });
+const fixedCalendarItems = [
+  {
+    title: "Kidsday",
+    date: "2026-05-25",
+    label: "Opkomend event",
+    description: "Een toffe feestdag met kinderen die opgroeien in kwetsbare omstandigheden.",
+    time: "Overdag",
+    location: "Wordt meegedeeld aan deelnemers",
+  },
+  {
+    title: "Openluchtcinema",
+    date: "2026-08-16",
+    label: "Opkomend event",
+    description: "Een filmavond in open lucht met een gezellige sfeer voor de regio.",
+    time: "Vanaf 19u",
+    location: "Locatie volgt",
+    href: "openluchtcinema.html",
+  },
+  {
+    title: "Oldtimer & GT Rally",
+    date: "2026-09-06",
+    label: "Opkomend event",
+    description: "Rallydag voor oldtimers en GT-wagens, met ontbijt, stops, lunch en BBQ aan Kasteel Oudeberg.",
+    time: "Vanaf 8u",
+    location: "Sfeervolle locaties in de omgeving, met BBQ aan Kasteel Oudeberg",
+    href: "rally.html",
+  },
+];
+
+let visibleCalendarDate = new Date(2026, 4, 1);
+
+function getThirdFriday(year, month) {
+  let fridayCount = 0;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const date = new Date(year, month, day);
+    if (date.getDay() === 5) {
+      fridayCount += 1;
+      if (fridayCount === 3) return day;
+    }
+  }
+
+  return 1;
+}
+
+function parseCalendarDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  return new Date(year, month - 1, day);
+}
+
+function getCalendarItems(year, month) {
+  const thirdFriday = getThirdFriday(year, month);
+  const items = [
+    {
+      title: "Maandelijkse bijeenkomst",
+      date: `${year}-${String(month + 1).padStart(2, "0")}-${String(thirdFriday).padStart(2, "0")}`,
+      description: "Clubwerking, projectupdates en nieuwe plannen.",
+      time: "20u",
+      location: "Steenpoel Golf Club",
+    },
+  ];
+
+  fixedCalendarItems.forEach((item) => {
+    if (item.date) {
+      const date = parseCalendarDate(item.date);
+      if (date.getFullYear() === year && date.getMonth() === month) items.push(item);
+      return;
+    }
+
+    if (item.year === year && item.month === month) items.push(item);
   });
-});
+
+  return items.sort((a, b) => {
+    if (!a.date && !b.date) return 0;
+    if (!a.date) return 1;
+    if (!b.date) return -1;
+    return parseCalendarDate(a.date) - parseCalendarDate(b.date);
+  });
+}
+
+function renderCalendar() {
+  if (!calendarTitle || !calendarBoard || !calendarAgenda) return;
+
+  const year = visibleCalendarDate.getFullYear();
+  const month = visibleCalendarDate.getMonth();
+  const monthItems = getCalendarItems(year, month);
+  const eventDays = new Set(
+    monthItems
+      .filter((item) => item.date)
+      .map((item) => parseCalendarDate(item.date).getDate())
+  );
+
+  calendarTitle.textContent = `${monthNames[month]} ${year}`;
+  calendarBoard.innerHTML = "";
+
+  ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"].forEach((day) => {
+    const item = document.createElement("span");
+    item.className = "weekday";
+    item.textContent = day;
+    calendarBoard.append(item);
+  });
+
+  const firstDay = new Date(year, month, 1);
+  const startOffset = (firstDay.getDay() + 6) % 7;
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const previousMonthDays = new Date(year, month, 0).getDate();
+
+  for (let i = startOffset; i > 0; i -= 1) {
+    const item = document.createElement("span");
+    item.className = "is-muted";
+    item.textContent = String(previousMonthDays - i + 1);
+    calendarBoard.append(item);
+  }
+
+  for (let day = 1; day <= daysInMonth; day += 1) {
+    const item = eventDays.has(day) ? document.createElement("button") : document.createElement("span");
+    item.textContent = String(day);
+    if (eventDays.has(day)) {
+      item.type = "button";
+      item.className = "is-event";
+      item.setAttribute("aria-label", `Event op ${day} ${monthNames[month]} ${year}`);
+    }
+    calendarBoard.append(item);
+  }
+
+  const totalCells = calendarBoard.children.length - 7;
+  const nextCells = (7 - (totalCells % 7)) % 7;
+  for (let day = 1; day <= nextCells; day += 1) {
+    const item = document.createElement("span");
+    item.className = "is-muted";
+    item.textContent = String(day);
+    calendarBoard.append(item);
+  }
+
+  calendarAgenda.innerHTML = "";
+  monthItems.forEach((item) => {
+    const article = document.createElement("article");
+    article.className = "agenda-item";
+    const date = item.date ? parseCalendarDate(item.date) : null;
+    const dayText = date ? String(date.getDate()) : item.dayLabel;
+    const monthText = date ? monthNames[date.getMonth()].slice(0, 3).toLowerCase() : "2026";
+    const title = item.href ? `<a href="${item.href}">${item.title}</a>` : item.title;
+    const label = item.label ? `<span class="tag">${item.label}</span>` : "";
+
+    article.innerHTML = `
+      <div class="agenda-item__date"><span>${dayText}<small>${monthText}</small></span></div>
+      <div>
+        ${label}
+        <h3>${title}</h3>
+        <p>${item.description}</p>
+        <dl class="agenda-meta"><div><dt>Uur</dt><dd>${item.time}</dd></div><div><dt>Plaats</dt><dd>${item.location}</dd></div></dl>
+      </div>
+    `;
+    calendarAgenda.append(article);
+  });
+}
+
+if (calendarPrev && calendarNext) {
+  calendarPrev.addEventListener("click", () => {
+    visibleCalendarDate = new Date(visibleCalendarDate.getFullYear(), visibleCalendarDate.getMonth() - 1, 1);
+    renderCalendar();
+  });
+
+  calendarNext.addEventListener("click", () => {
+    visibleCalendarDate = new Date(visibleCalendarDate.getFullYear(), visibleCalendarDate.getMonth() + 1, 1);
+    renderCalendar();
+  });
+
+  renderCalendar();
+}
 
 const contactForm = document.querySelector("[data-contact-form]");
 
