@@ -50,7 +50,7 @@ const fixedCalendarItems = [
   {
     title: "Kidsday",
     date: "2026-05-25",
-    label: "Opkomend event",
+    label: "Afgelopen event",
     description: "Een toffe feestdag met kinderen die opgroeien in kwetsbare omstandigheden.",
     time: "Overdag",
     location: "Wordt meegedeeld aan deelnemers",
