@@ -243,3 +243,22 @@ if (contactForm) {
     window.location.href = mailto.toString();
   });
 }
+
+const rallyForm = document.querySelector("[data-rally-form]");
+
+if (rallyForm) {
+  const participation = rallyForm.querySelector("[data-participation]");
+  const carFields = [...rallyForm.querySelectorAll("[data-car-field]")];
+
+  const updateCarRequirements = () => {
+    const isRally = participation.value !== "Enkel BBQ";
+
+    carFields.forEach((field) => {
+      field.required = isRally;
+      field.disabled = !isRally;
+    });
+  };
+
+  participation.addEventListener("change", updateCarRequirements);
+  updateCarRequirements();
+}
