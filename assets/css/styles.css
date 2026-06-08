@@ -1132,6 +1132,10 @@ textarea {
   object-position: center 72%;
 }
 
+.rally-photo--home {
+  object-position: center 50%;
+}
+
 .form-intro {
   margin: 0.75rem 0 0;
   color: var(--muted);
