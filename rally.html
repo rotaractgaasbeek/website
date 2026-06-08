@@ -175,12 +175,13 @@
 
           <section class="form-panel" aria-label="Inschrijfformulier RAC GP">
             <h2>Inschrijfformulier</h2>
-            <p class="form-intro">Na verzending ontvangt Rotaract Gaasbeek Pajottenland je aanvraag per e-mail met als onderwerp <strong>RAC GP</strong>.</p>
+            <p class="form-intro">Na verzending ontvangt Rotaract Gaasbeek Pajottenland je aanvraag per e-mail met als onderwerp <strong>RAC GP</strong>. Je krijgt zelf ook een automatische ontvangstbevestiging.</p>
             <form class="form-grid" action="https://formsubmit.co/rotaractgaasbeek@gmail.com" method="POST" data-rally-form>
               <input type="hidden" name="_subject" value="RAC GP">
               <input type="hidden" name="_template" value="table">
               <input type="hidden" name="_next" value="https://www.rotaractgaasbeek.be/rally-bedankt.html">
-              <input class="form-honeypot" type="text" name="_honey" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <input type="hidden" name="_url" value="https://www.rotaractgaasbeek.be/rally.html">
+              <input type="hidden" name="_autoresponse" value="Bedankt voor je inschrijving voor RAC GP. Rotaract Gaasbeek Pajottenland heeft je aanvraag ontvangen en neemt contact met je op met de verdere betaal- en deelnamedetails.">
 
               <div class="field">
                 <label for="rally-name">Naam en voornaam</label>
