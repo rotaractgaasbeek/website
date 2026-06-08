@@ -125,7 +125,7 @@
             <h2>Een rallydag voor liefhebbers van karaktervolle wagens.</h2>
             <p>RAC GP van Rotaract Gaasbeek Pajottenland brengt autoliefhebbers samen voor een stijlvolle rit door de omgeving. De locaties zijn zorgvuldig gekozen: sfeervolle en mooie plaatsen met een klassevolle uitstraling.</p>
             <p>Alle winst gaat naar een internaatsfonds dat kinderen in moeilijke thuissituaties of met een beperkt budget helpt om op internaat te kunnen. Dit doen we in samenwerking met Sint-Jozefscollege Aalst.</p>
-            <p>Je deelname aanvragen kan via het formulier hieronder. Vermeld voor deelname aan de rally met welke wagen je wil deelnemen en met hoeveel personen je in de wagen zal zitten. Wie enkel wil aansluiten voor de BBQ, kan via hetzelfde formulier een aanvraag indienen.</p>
+            <p>Je deelname aan de rally aanvragen kan via het formulier hieronder. Vermeld met welke wagen je wil deelnemen en met hoeveel personen je in de wagen zal zitten. Tickets voor enkel de BBQ kunnen rechtstreeks online aangekocht worden.</p>
             <div class="event-program">
               <h3>Programma</h3>
               <ol class="event-program__list">
@@ -140,7 +140,7 @@
             </div>
             <div class="hero__actions">
               <a class="button button--primary" href="#inschrijven">Dien je aanvraag in</a>
-              <a class="button button--secondary" href="events.html">Terug naar events</a>
+              <a class="button button--secondary" href="#bbq-tickets">Koop BBQ-tickets</a>
             </div>
           </article>
           <aside class="event-facts" aria-label="Eventgegevens">
@@ -178,6 +178,7 @@
             <p class="form-intro">Na verzending beoordelen we de aanvraag en, bij deelname aan de rally, ook de opgegeven wagen. Daarna nemen we contact op over de betaling. Pas na goedkeuring en betaling is de deelname officieel.</p>
             <form class="form-grid" action="/api/rally-registration" method="POST" data-rally-form>
               <input class="form-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+              <input type="hidden" name="Deelname" value="Volledige rally met wagen">
 
               <div class="field">
                 <label for="rally-name">Naam en voornaam</label>
@@ -190,14 +191,6 @@
               <div class="field">
                 <label for="rally-phone">Telefoonnummer</label>
                 <input id="rally-phone" name="Telefoonnummer" type="tel" autocomplete="tel" required>
-              </div>
-              <div class="field">
-                <label for="rally-participation">Deelname</label>
-                <select id="rally-participation" name="Deelname" required data-participation>
-                  <option value="">Maak een keuze</option>
-                  <option value="Volledige rally met wagen">Volledige rally met wagen</option>
-                  <option value="Enkel BBQ">Enkel BBQ</option>
-                </select>
               </div>
               <div class="field">
                 <label for="rally-car">Wagen: merk en model</label>
@@ -236,6 +229,51 @@
               </div>
             </form>
           </section>
+        </div>
+      </section>
+
+      <section class="section" id="bbq-tickets">
+        <div class="wrap ticket-layout">
+          <div>
+            <p class="eyebrow">Enkel BBQ</p>
+            <h2 class="section-title">Koop je BBQ-ticket.</h2>
+            <p class="lead">Wil je niet deelnemen aan de rally, maar wel aansluiten bij de BBQ om 18u aan Gravenhof? Koop hier rechtstreeks je ticket. Er zijn maximaal 120 BBQ-tickets beschikbaar.</p>
+            <ul class="ticket-highlights">
+              <li><strong>€100</strong><span>per persoon</span></li>
+              <li><strong>18u</strong><span>start BBQ</span></li>
+              <li><strong>Gravenhof</strong><span>avondlocatie</span></li>
+            </ul>
+          </div>
+          <form class="ticket-panel" action="/api/create-checkout" method="POST" data-ticket-form data-ticket-event="bbq">
+            <h2>BBQ-tickets</h2>
+            <div class="field">
+              <label for="bbq-name">Naam en voornaam</label>
+              <input id="bbq-name" name="name" type="text" autocomplete="name" required>
+            </div>
+            <div class="field">
+              <label for="bbq-email">E-mailadres</label>
+              <input id="bbq-email" name="email" type="email" autocomplete="email" required>
+            </div>
+            <div class="field">
+              <label for="bbq-phone">Telefoonnummer</label>
+              <input id="bbq-phone" name="phone" type="tel" autocomplete="tel">
+            </div>
+            <div class="field">
+              <label for="bbq-quantity">Aantal BBQ-tickets</label>
+              <input id="bbq-quantity" name="bbqQuantity" type="number" min="1" max="120" value="1" inputmode="numeric" required data-ticket-quantity>
+            </div>
+            <div class="ticket-total">
+              <span>Totaal</span>
+              <strong data-ticket-total>€100,00</strong>
+            </div>
+            <label class="consent-field">
+              <input type="checkbox" required>
+              <span>Ik ga akkoord met de verwerking van mijn gegevens voor deze bestelling.</span>
+            </label>
+            <button class="button button--primary" type="submit">Veilig betalen met Bancontact</button>
+            <p class="form-note">Je wordt doorgestuurd naar de beveiligde betaalpagina van Stripe.</p>
+            <p class="form-status" role="status" aria-live="polite" data-ticket-status></p>
+          </form>
         </div>
       </section>
     </main>

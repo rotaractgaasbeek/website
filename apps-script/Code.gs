@@ -1,5 +1,7 @@
 const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
+const TICKET_SHEET_NAME = "Ticketbestellingen";
+const BBQ_CAPACITY = 120;
 const RAC_GP_LOGO_URL =
   "https://www.rotaractgaasbeek.be/assets/images/rotaract-masterbrand-transparent.png";
 
@@ -44,7 +46,9 @@ function setupRacGp() {
   }
 
   const spreadsheetUrl = SpreadsheetApp.openById(spreadsheetId).getUrl();
-  ensureStatusColumn(SpreadsheetApp.openById(spreadsheetId));
+  const configuredSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  ensureStatusColumn(configuredSpreadsheet);
+  ensureTicketSheet(configuredSpreadsheet);
   console.log("RALLY_FORM_SECRET=" + secret);
   console.log("Google Sheet=" + spreadsheetUrl);
 }
@@ -65,6 +69,26 @@ function doPost(event) {
         ok: false,
         message: "De Google Sheet is nog niet ingesteld.",
       });
+    }
+
+    if (data.action === "reserve_tickets") {
+      return reserveTickets(data, spreadsheetId);
+    }
+
+    if (data.action === "attach_checkout") {
+      return updateTicketOrder(data, spreadsheetId, "Checkout gestart");
+    }
+
+    if (data.action === "release_reservation") {
+      return updateTicketOrder(data, spreadsheetId, "Vrijgegeven");
+    }
+
+    if (data.action === "payment_failed") {
+      return updateTicketOrder(data, spreadsheetId, "Betaling mislukt");
+    }
+
+    if (data.action === "payment_completed") {
+      return completeTicketPayment(data, spreadsheetId);
     }
 
     const registration = normalizeRegistration(data);
@@ -288,6 +312,314 @@ function sendParticipantConfirmation(registration, registrationId) {
   }
 
   MailApp.sendEmail(mailOptions);
+}
+
+function reserveTickets(data, spreadsheetId) {
+  const order = {
+    event: cleanValue(data.event, 80),
+    name: cleanValue(data.name, 120),
+    email: cleanValue(data.email, 180),
+    phone: cleanValue(data.phone, 80),
+    bbqQuantity: positiveInteger(data.bbqQuantity, 120),
+    adultQuantity: positiveInteger(data.adultQuantity, 500),
+    childQuantity: positiveInteger(data.childQuantity, 500),
+  };
+
+  if (
+    !order.name ||
+    !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email) ||
+    order.bbqQuantity + order.adultQuantity + order.childQuantity < 1
+  ) {
+    return jsonResponse({ ok: false, message: "Controleer de ticketgegevens." });
+  }
+
+  const totalCents =
+    order.bbqQuantity * 10000 +
+    order.adultQuantity * 1500 +
+    order.childQuantity * 1000;
+  const orderId =
+    "TICKET-" +
+    Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
+    "-" +
+    Utilities.getUuid().slice(0, 6).toUpperCase();
+  const expiresAt = new Date(Date.now() + 35 * 60 * 1000);
+  const lock = LockService.getScriptLock();
+
+  lock.waitLock(10000);
+  try {
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    ensureTicketSheet(spreadsheet);
+    const sheet = spreadsheet.getSheetByName(TICKET_SHEET_NAME);
+    expireOldReservations(sheet);
+
+    if (order.bbqQuantity > 0) {
+      const soldAndReserved = countReservedBbqTickets(sheet);
+      if (soldAndReserved + order.bbqQuantity > BBQ_CAPACITY) {
+        const remaining = Math.max(0, BBQ_CAPACITY - soldAndReserved);
+        return jsonResponse({
+          ok: false,
+          message:
+            remaining === 0
+              ? "De BBQ is helaas uitverkocht."
+              : "Er zijn nog slechts " + remaining + " BBQ-tickets beschikbaar.",
+        });
+      }
+    }
+
+    sheet.appendRow([
+      new Date(),
+      orderId,
+      order.event,
+      order.name,
+      order.email,
+      order.phone,
+      order.bbqQuantity,
+      order.adultQuantity,
+      order.childQuantity,
+      totalCents / 100,
+      "Gereserveerd",
+      expiresAt,
+      "",
+      "",
+      "Nee",
+    ]);
+  } finally {
+    lock.releaseLock();
+  }
+
+  return jsonResponse({ ok: true, orderId: orderId });
+}
+
+function updateTicketOrder(data, spreadsheetId, status) {
+  const orderId = cleanValue(data.orderId, 80);
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  ensureTicketSheet(spreadsheet);
+  const sheet = spreadsheet.getSheetByName(TICKET_SHEET_NAME);
+  const row = findTicketOrderRow(sheet, orderId);
+
+  if (!row) {
+    return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
+  }
+
+  sheet.getRange(row, 11).setValue(status);
+  if (data.stripeSessionId) {
+    sheet.getRange(row, 13).setValue(cleanValue(data.stripeSessionId, 180));
+  }
+
+  return jsonResponse({ ok: true, orderId: orderId });
+}
+
+function completeTicketPayment(data, spreadsheetId) {
+  const orderId = cleanValue(data.orderId, 80);
+  const lock = LockService.getScriptLock();
+  let sheet;
+  let row;
+  let order;
+
+  lock.waitLock(10000);
+  try {
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    ensureTicketSheet(spreadsheet);
+    sheet = spreadsheet.getSheetByName(TICKET_SHEET_NAME);
+    row = findTicketOrderRow(sheet, orderId);
+
+    if (!row) {
+      return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
+    }
+
+    if (sheet.getRange(row, 11).getValue() === "Betaald") {
+      return jsonResponse({ ok: true, orderId: orderId, duplicate: true });
+    }
+
+    sheet.getRange(row, 11).setValue("Betaald");
+    sheet.getRange(row, 13).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 14).setValue(cleanValue(data.paymentIntentId, 180));
+
+    const values = sheet.getRange(row, 1, 1, 15).getValues()[0];
+    order = ticketOrderFromRow(values);
+  } finally {
+    lock.releaseLock();
+  }
+
+  try {
+    sendTicketEmails(order);
+    sheet.getRange(row, 15).setValue("Ja");
+  } catch (error) {
+    console.error(error);
+    sheet.getRange(row, 15).setValue("Nee - controleer Apps Script");
+  }
+
+  return jsonResponse({ ok: true, orderId: orderId });
+}
+
+function ensureTicketSheet(spreadsheet) {
+  let sheet = spreadsheet.getSheetByName(TICKET_SHEET_NAME);
+  if (sheet) {
+    return sheet;
+  }
+
+  sheet = spreadsheet.insertSheet(TICKET_SHEET_NAME);
+  sheet.appendRow([
+    "Aangemaakt op",
+    "Bestelnummer",
+    "Event",
+    "Naam",
+    "E-mail",
+    "Telefoonnummer",
+    "BBQ-tickets",
+    "Volwassenen",
+    "Kinderen t.e.m. 12 jaar",
+    "Totaal euro",
+    "Status",
+    "Reservatie verloopt",
+    "Stripe Checkout Session",
+    "Stripe Payment Intent",
+    "Bevestigingsmail verstuurd",
+  ]);
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, 15)
+    .setBackground("#D41367")
+    .setFontColor("#FFFFFF")
+    .setFontWeight("bold");
+  sheet.autoResizeColumns(1, 15);
+  return sheet;
+}
+
+function expireOldReservations(sheet) {
+  if (sheet.getLastRow() < 2) {
+    return;
+  }
+
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 15).getValues();
+  const now = new Date();
+
+  rows.forEach(function (row, index) {
+    const status = row[10];
+    const expiresAt = row[11];
+    if (
+      (status === "Gereserveerd" || status === "Checkout gestart") &&
+      expiresAt instanceof Date &&
+      expiresAt < now
+    ) {
+      sheet.getRange(index + 2, 11).setValue("Verlopen");
+    }
+  });
+}
+
+function countReservedBbqTickets(sheet) {
+  if (sheet.getLastRow() < 2) {
+    return 0;
+  }
+
+  return sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, 15)
+    .getValues()
+    .reduce(function (total, row) {
+      const status = row[10];
+      return status === "Gereserveerd" ||
+        status === "Checkout gestart" ||
+        status === "Betaald"
+        ? total + Number(row[6] || 0)
+        : total;
+    }, 0);
+}
+
+function findTicketOrderRow(sheet, orderId) {
+  if (!orderId || sheet.getLastRow() < 2) {
+    return 0;
+  }
+
+  const finder = sheet
+    .getRange(2, 2, sheet.getLastRow() - 1, 1)
+    .createTextFinder(orderId)
+    .matchEntireCell(true)
+    .findNext();
+  return finder ? finder.getRow() : 0;
+}
+
+function ticketOrderFromRow(row) {
+  return {
+    orderId: String(row[1]),
+    event: String(row[2]),
+    name: String(row[3]),
+    email: String(row[4]),
+    phone: String(row[5] || ""),
+    bbqQuantity: Number(row[6] || 0),
+    adultQuantity: Number(row[7] || 0),
+    childQuantity: Number(row[8] || 0),
+    total: Number(row[9] || 0),
+  };
+}
+
+function sendTicketEmails(order) {
+  const signatureImages = getSignatureImages();
+  const hasInlineLogo = Object.keys(signatureImages).length > 0;
+  const ticketLines = [];
+
+  if (order.bbqQuantity) {
+    ticketLines.push(order.bbqQuantity + " × RAC GP BBQ");
+  }
+  if (order.adultQuantity) {
+    ticketLines.push(order.adultQuantity + " × Openluchtcinema volwassene");
+  }
+  if (order.childQuantity) {
+    ticketLines.push(
+      order.childQuantity + " × Openluchtcinema kind t.e.m. 12 jaar",
+    );
+  }
+
+  const participantOptions = {
+    to: order.email,
+    name: "Rotaract Gaasbeek Pajottenland",
+    subject: "Betalingsbevestiging en tickets - " + order.event,
+    body:
+      "Beste " + order.name + ",\n\n" +
+      "Je betaling is ontvangen. Je tickets zijn officieel bevestigd.\n\n" +
+      "Bestelnummer: " + order.orderId + "\n" +
+      ticketLines.join("\n") + "\n" +
+      "Totaal: €" + order.total.toFixed(2).replace(".", ",") + "\n\n" +
+      "Bewaar deze e-mail en toon je bestelnummer bij aankomst.\n\n" +
+      "Rotaract Gaasbeek Pajottenland",
+    htmlBody:
+      '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18212c;max-width:640px">' +
+      "<p>Beste " + escapeHtml(order.name) + ",</p>" +
+      "<h1 style=\"color:#D41367\">Je tickets zijn bevestigd.</h1>" +
+      "<p>We hebben je betaling goed ontvangen.</p>" +
+      '<div style="padding:18px;background:#FCE8F1;border-left:4px solid #D41367">' +
+      "<strong>Bestelnummer: " + escapeHtml(order.orderId) + "</strong><br>" +
+      ticketLines.map(escapeHtml).join("<br>") +
+      "<br><strong>Totaal: €" +
+      order.total.toFixed(2).replace(".", ",") +
+      "</strong></div>" +
+      "<p>Bewaar deze e-mail en toon je bestelnummer bij aankomst.</p>" +
+      emailSignatureHtml(hasInlineLogo) +
+      "</div>",
+  };
+
+  if (hasInlineLogo) {
+    participantOptions.inlineImages = signatureImages;
+  }
+  MailApp.sendEmail(participantOptions);
+
+  MailApp.sendEmail({
+    to: RAC_GP_RECIPIENT,
+    replyTo: order.email,
+    name: "Rotaract Gaasbeek Pajottenland",
+    subject: "Betaalde ticketbestelling - " + order.event + " - " + order.name,
+    body:
+      "Bestelnummer: " + order.orderId + "\n" +
+      "Naam: " + order.name + "\n" +
+      "E-mail: " + order.email + "\n" +
+      ticketLines.join("\n") + "\n" +
+      "Totaal: €" + order.total.toFixed(2).replace(".", ","),
+  });
+}
+
+function positiveInteger(value, maximum) {
+  const number = Number(value);
+  return Number.isInteger(number) && number >= 0 && number <= maximum
+    ? number
+    : 0;
 }
 
 function ensureStatusColumn(spreadsheet) {

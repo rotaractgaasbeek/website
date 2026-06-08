@@ -253,7 +253,7 @@ if (rallyForm) {
   const formStatus = rallyForm.querySelector("[data-form-status]");
 
   const updateCarRequirements = () => {
-    const isRally = participation.value !== "Enkel BBQ";
+    const isRally = !participation || participation.value !== "Enkel BBQ";
 
     carFields.forEach((field) => {
       field.required = isRally;
@@ -261,7 +261,7 @@ if (rallyForm) {
     });
   };
 
-  participation.addEventListener("change", updateCarRequirements);
+  participation?.addEventListener("change", updateCarRequirements);
   updateCarRequirements();
 
   rallyForm.addEventListener("submit", async (event) => {
@@ -299,4 +299,88 @@ if (rallyForm) {
       submitButton.textContent = "Opnieuw proberen";
     }
   });
+}
+
+const ticketPrices = {
+  bbq: { bbqQuantity: 10000 },
+  cinema: { adultQuantity: 1500, childQuantity: 1000 },
+};
+
+document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
+  const eventType = ticketForm.dataset.ticketEvent;
+  const quantities = [...ticketForm.querySelectorAll("[data-ticket-quantity]")];
+  const totalOutput = ticketForm.querySelector("[data-ticket-total]");
+  const status = ticketForm.querySelector("[data-ticket-status]");
+  const submitButton = ticketForm.querySelector('button[type="submit"]');
+
+  const updateTicketTotal = () => {
+    const total = quantities.reduce((sum, input) => {
+      const quantity = Math.max(0, Number.parseInt(input.value, 10) || 0);
+      return sum + quantity * (ticketPrices[eventType]?.[input.name] || 0);
+    }, 0);
+
+    totalOutput.textContent = new Intl.NumberFormat("nl-BE", {
+      style: "currency",
+      currency: "EUR",
+    }).format(total / 100);
+  };
+
+  quantities.forEach((input) => input.addEventListener("input", updateTicketTotal));
+  updateTicketTotal();
+
+  ticketForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!ticketForm.reportValidity()) {
+      return;
+    }
+
+    const payload = Object.fromEntries(new FormData(ticketForm).entries());
+    payload.event = eventType;
+    const totalQuantity = quantities.reduce(
+      (sum, input) => sum + Math.max(0, Number.parseInt(input.value, 10) || 0),
+      0,
+    );
+
+    if (totalQuantity < 1) {
+      status.textContent = "Kies minstens één ticket.";
+      status.className = "form-status form-status--error";
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Betaalpagina openen...";
+    status.textContent = "";
+    status.className = "form-status";
+
+    try {
+      const response = await fetch(ticketForm.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.ok || !result.url) {
+        throw new Error(result.message || "De betaling kon niet worden gestart.");
+      }
+
+      window.location.href = result.url;
+    } catch (error) {
+      status.textContent =
+        error.message || "De betaling kon niet worden gestart. Probeer later opnieuw.";
+      status.classList.add("form-status--error");
+      submitButton.disabled = false;
+      submitButton.textContent = "Opnieuw proberen";
+    }
+  });
+});
+
+if (new URLSearchParams(window.location.search).get("betaling") === "geannuleerd") {
+  const ticketStatus = document.querySelector("[data-ticket-status]");
+  if (ticketStatus) {
+    ticketStatus.textContent =
+      "De betaling werd geannuleerd. Er is niets aangerekend; je kunt opnieuw proberen.";
+    ticketStatus.className = "form-status form-status--error";
+  }
 }
