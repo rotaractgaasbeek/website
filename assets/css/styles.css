@@ -537,6 +537,39 @@ textarea {
   align-items: center;
 }
 
+.club-info {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.club-info__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.9fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.club-facts {
+  margin: 0;
+  border-top: 3px solid var(--cranberry);
+}
+
+.club-facts div {
+  padding: 1.1rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.club-facts dt {
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.club-facts dd {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
 .story-media {
   display: grid;
   gap: 1rem;
@@ -1458,6 +1491,7 @@ textarea {
 
   .section-head--split,
   .story-grid,
+  .club-info__layout,
   .calendar-grid,
   .contact-layout,
   .rally-registration,

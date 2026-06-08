@@ -68,9 +68,9 @@ const fixedCalendarItems = [
     title: "RAC GP",
     date: "2026-09-06",
     label: "Opkomend event",
-    description: "Klassevolle rallydag voor oldtimers en GT-wagens, met ontbijt, stops, lunch en BBQ aan Gravenhof.",
+    description: "Klassevolle rallydag voor oldtimers en GT-wagens, met ontbijt, stops, lunch en BBQ aan Gravenhof in Beersel.",
     time: "Vanaf 8u",
-    location: "Sfeervolle locaties in de omgeving, met BBQ aan Gravenhof",
+    location: "Sfeervolle locaties in de omgeving, met BBQ aan Gravenhof in Beersel",
     href: "rally.html",
   },
 ];
