@@ -1141,6 +1141,25 @@ textarea {
   color: var(--muted);
 }
 
+.form-honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.form-status {
+  min-height: 1.5em;
+  margin: 0;
+  font-weight: 700;
+}
+
+.form-status--error {
+  color: #9f1239;
+}
+
 .consent-field {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);

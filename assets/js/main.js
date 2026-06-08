@@ -249,6 +249,8 @@ const rallyForm = document.querySelector("[data-rally-form]");
 if (rallyForm) {
   const participation = rallyForm.querySelector("[data-participation]");
   const carFields = [...rallyForm.querySelectorAll("[data-car-field]")];
+  const submitButton = rallyForm.querySelector('button[type="submit"]');
+  const formStatus = rallyForm.querySelector("[data-form-status]");
 
   const updateCarRequirements = () => {
     const isRally = participation.value !== "Enkel BBQ";
@@ -261,4 +263,40 @@ if (rallyForm) {
 
   participation.addEventListener("change", updateCarRequirements);
   updateCarRequirements();
+
+  rallyForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    if (!rallyForm.reportValidity()) {
+      return;
+    }
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Bezig met verzenden...";
+    formStatus.textContent = "";
+    formStatus.className = "form-status";
+
+    try {
+      const payload = Object.fromEntries(new FormData(rallyForm).entries());
+      const response = await fetch(rallyForm.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+
+      if (!response.ok || !result.ok) {
+        throw new Error(result.message || "De inschrijving kon niet worden verzonden.");
+      }
+
+      window.location.href = "rally-bedankt.html";
+    } catch (error) {
+      formStatus.textContent =
+        error.message ||
+        "De inschrijving kon niet worden verzonden. Probeer later opnieuw.";
+      formStatus.classList.add("form-status--error");
+      submitButton.disabled = false;
+      submitButton.textContent = "Opnieuw proberen";
+    }
+  });
 }

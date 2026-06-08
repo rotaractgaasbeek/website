@@ -175,13 +175,9 @@
 
           <section class="form-panel" aria-label="Inschrijfformulier RAC GP">
             <h2>Inschrijfformulier</h2>
-            <p class="form-intro">Na verzending ontvangt Rotaract Gaasbeek Pajottenland je aanvraag per e-mail met als onderwerp <strong>RAC GP</strong>. Je krijgt zelf ook een automatische ontvangstbevestiging.</p>
-            <form class="form-grid" action="https://formsubmit.co/rotaractgaasbeek@gmail.com" method="POST" data-rally-form>
-              <input type="hidden" name="_subject" value="RAC GP">
-              <input type="hidden" name="_template" value="table">
-              <input type="hidden" name="_next" value="https://www.rotaractgaasbeek.be/rally-bedankt.html">
-              <input type="hidden" name="_url" value="https://www.rotaractgaasbeek.be/rally.html">
-              <input type="hidden" name="_autoresponse" value="Bedankt voor je inschrijving voor RAC GP. Rotaract Gaasbeek Pajottenland heeft je aanvraag ontvangen en neemt contact met je op met de verdere betaal- en deelnamedetails.">
+            <p class="form-intro">Na een geslaagde verzending wordt je aanvraag opgeslagen in onze beveiligde inschrijvingslijst en ontvangt Rotaract Gaasbeek Pajottenland een e-mailmelding.</p>
+            <form class="form-grid" action="/api/rally-registration" method="POST" data-rally-form>
+              <input class="form-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
 
               <div class="field">
                 <label for="rally-name">Naam en voornaam</label>
@@ -236,6 +232,7 @@
               <div class="field field--full form-actions">
                 <button class="button button--primary" type="submit">Inschrijving verzenden</button>
                 <p class="form-note">Je ontvangt verdere betaal- en deelnamedetails via e-mail.</p>
+                <p class="form-status" role="status" aria-live="polite" data-form-status></p>
               </div>
             </form>
           </section>
