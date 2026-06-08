@@ -22,3 +22,6 @@
 Bij een volgende wijziging aan `Code.gs` moet je in Apps Script via
 **Implementeren → Implementaties beheren → Bewerken → Nieuwe versie**
 opnieuw implementeren.
+
+Na het vervangen van de code mag je `setupRacGp` opnieuw uitvoeren. De bestaande
+aanvragen blijven bewaard; de functie werkt alleen de kolomtitels en instellingen bij.

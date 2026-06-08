@@ -286,14 +286,14 @@ if (rallyForm) {
       const result = await response.json().catch(() => ({}));
 
       if (!response.ok || !result.ok) {
-        throw new Error(result.message || "De inschrijving kon niet worden verzonden.");
+        throw new Error(result.message || "De aanvraag kon niet worden verzonden.");
       }
 
       window.location.href = "rally-bedankt.html";
     } catch (error) {
       formStatus.textContent =
         error.message ||
-        "De inschrijving kon niet worden verzonden. Probeer later opnieuw.";
+        "De aanvraag kon niet worden verzonden. Probeer later opnieuw.";
       formStatus.classList.add("form-status--error");
       submitButton.disabled = false;
       submitButton.textContent = "Opnieuw proberen";

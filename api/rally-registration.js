@@ -101,7 +101,7 @@ module.exports = async function handler(request, response) {
         ok: false,
         message:
           result.message ||
-          "De inschrijving kon niet worden opgeslagen. Probeer later opnieuw.",
+          "De aanvraag kon niet worden opgeslagen. Probeer later opnieuw.",
       });
     }
 
@@ -114,7 +114,7 @@ module.exports = async function handler(request, response) {
     console.error("Google Apps Script request failed", error);
     return response.status(502).json({
       ok: false,
-      message: "De inschrijving kon niet worden opgeslagen. Probeer later opnieuw.",
+      message: "De aanvraag kon niet worden opgeslagen. Probeer later opnieuw.",
     });
   } finally {
     clearTimeout(timeout);
