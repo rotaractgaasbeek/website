@@ -141,7 +141,8 @@ async function main() {
   ${text(1060, 1815, "OOK ZONDER RALLYWAGEN WELKOM", { size: 28, weight: 900, fill: "#f3b23c", spacing: 2.2 })}
   ${text(1060, 1935, "BBQ", { size: 100, weight: 900, fill: "#ffffff", spacing: -2 })}
   ${text(1060, 2048, "GRAVENHOF", { size: 98, weight: 900, fill: "#f3b23c", spacing: -2 })}
-  ${text(1060, 2140, "vanaf 18u", { size: 42, weight: 700, fill: "#ffffff" })}
+  ${text(1060, 2125, "in Beersel", { size: 38, weight: 700, fill: "#ffffff" })}
+  ${text(1060, 2180, "vanaf 18u", { size: 42, weight: 700, fill: "#ffffff" })}
   ${roundedRect(1985, 1830, 275, 300, 30, "#f3b23c")}
   ${text(2122, 1950, "€100", { size: 73, weight: 900, fill: "#18212c", anchor: "middle" })}
   ${lines(2122, 2020, ["ENKEL", "BBQ"], { size: 32, weight: 900, fill: "#18212c", anchor: "middle", lineHeight: 38, spacing: 1.8 })}
@@ -149,8 +150,8 @@ async function main() {
   <!-- Prices -->
   ${text(130, 2390, "DEELNEMEN", { size: 29, weight: 900, fill: "#d41367", spacing: 3 })}
   ${text(130, 2470, "Kies jouw formule", { size: 55, weight: 900, fill: "#18212c", spacing: -1 })}
-  ${ticket(130, 2530, 700, "Bestuurder", "€225")}
-  ${ticket(870, 2530, 700, "Bijrijder", "€180")}
+  ${ticket(130, 2530, 700, "Bestuurder", "€230")}
+  ${ticket(870, 2530, 700, "Bijrijder", "€210")}
   ${ticket(1610, 2530, 740, "Enkel BBQ", "€100", { fill: "#fff4cf", color: "#18212c", priceColor: "#18212c", stroke: "#f3b23c" })}
 
   <!-- CTA -->

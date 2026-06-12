@@ -98,9 +98,9 @@
             <p class="eyebrow">Over het event</p>
             <h2>Een zomeravond waar film en ontmoeting samenkomen.</h2>
             <p>Rotaract Gaasbeek Pajottenland organiseert op 16 augustus 2026 een openluchtcinema in de Dekenijtuin in Lennik. Vanaf 19u ontvangen we bezoekers voor een laagdrempelige filmavond waar mensen samen kunnen genieten van een film, een drankje en een warme clubsfeer.</p>
-            <p>Verdere praktische info volgt later. Wie wil samenwerken of meehelpen, kan ons alvast contacteren.</p>
+            <p>De ticketprijzen worden momenteel opnieuw bekeken. De ticketverkoop opent zodra de definitieve prijzen bekend zijn. Wie wil samenwerken of meehelpen, kan ons alvast contacteren.</p>
             <div class="hero__actions">
-              <a class="button button--primary" href="#tickets">Koop tickets</a>
+              <a class="button button--primary" href="contact.html">Contacteer ons</a>
               <a class="button button--secondary" href="events.html">Terug naar events</a>
             </div>
           </article>
@@ -110,8 +110,7 @@
               <div><dt>Datum</dt><dd>16 augustus 2026</dd></div>
               <div><dt>Uur</dt><dd>Vanaf 19u</dd></div>
               <div><dt>Locatie</dt><dd>Dekenijtuin in Lennik</dd></div>
-              <div><dt>Volwassenen</dt><dd>15 euro</dd></div>
-              <div><dt>Kinderen t.e.m. 12 jaar</dt><dd>10 euro</dd></div>
+              <div><dt>Tickets</dt><dd>Verkoop opent later</dd></div>
               <div><dt>Type</dt><dd>Openluchtcinema</dd></div>
               <div><dt>Status</dt><dd>Opkomend event</dd></div>
               <div><dt>Contact</dt><dd><a href="mailto:rotaractgaasbeek@gmail.com">rotaractgaasbeek@gmail.com</a></dd></div>
@@ -120,56 +119,6 @@
         </div>
       </section>
 
-      <section class="section section--paper" id="tickets">
-        <div class="wrap ticket-layout">
-          <div>
-            <p class="eyebrow">Tickets</p>
-            <h2 class="section-title">Reserveer je plek voor de filmavond.</h2>
-            <p class="lead">Kies het aantal tickets en betaal veilig met Bancontact. Na een geslaagde betaling ontvang je een bevestiging per e-mail.</p>
-            <ul class="ticket-highlights">
-              <li><strong>€15</strong><span>volwassenen</span></li>
-              <li><strong>€10</strong><span>kinderen t.e.m. 12 jaar</span></li>
-              <li><strong>19u</strong><span>start ontvangst</span></li>
-            </ul>
-          </div>
-          <form class="ticket-panel" action="/api/create-checkout" method="POST" data-ticket-form data-ticket-event="cinema">
-            <h2>Openluchtcinematickets</h2>
-            <div class="field">
-              <label for="cinema-name">Naam en voornaam</label>
-              <input id="cinema-name" name="name" type="text" autocomplete="name" required>
-            </div>
-            <div class="field">
-              <label for="cinema-email">E-mailadres</label>
-              <input id="cinema-email" name="email" type="email" autocomplete="email" required>
-            </div>
-            <div class="field">
-              <label for="cinema-phone">Telefoonnummer</label>
-              <input id="cinema-phone" name="phone" type="tel" autocomplete="tel">
-            </div>
-            <div class="ticket-quantities">
-              <div class="field">
-                <label for="cinema-adults">Volwassenen (€15)</label>
-                <input id="cinema-adults" name="adultQuantity" type="number" min="0" value="1" inputmode="numeric" data-ticket-quantity>
-              </div>
-              <div class="field">
-                <label for="cinema-children">Kinderen t.e.m. 12 jaar (€10)</label>
-                <input id="cinema-children" name="childQuantity" type="number" min="0" value="0" inputmode="numeric" data-ticket-quantity>
-              </div>
-            </div>
-            <div class="ticket-total">
-              <span>Totaal</span>
-              <strong data-ticket-total>€15,00</strong>
-            </div>
-            <label class="consent-field">
-              <input type="checkbox" required>
-              <span>Ik ga akkoord met de verwerking van mijn gegevens voor deze bestelling.</span>
-            </label>
-            <button class="button button--primary" type="submit">Veilig betalen met Bancontact</button>
-            <p class="form-note">Je wordt doorgestuurd naar de beveiligde betaalpagina van Stripe.</p>
-            <p class="form-status" role="status" aria-live="polite" data-ticket-status></p>
-          </form>
-        </div>
-      </section>
     </main>
 
     <footer class="site-footer">

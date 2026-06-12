@@ -2,8 +2,6 @@ const { callGoogleAppsScript } = require("./_lib/google-apps-script");
 
 const SITE_URL = process.env.SITE_URL || "https://www.rotaractgaasbeek.be";
 const BBQ_PRICE = 10000;
-const CINEMA_ADULT_PRICE = 1500;
-const CINEMA_CHILD_PRICE = 1000;
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);
@@ -42,6 +40,13 @@ module.exports = async function handler(request, response) {
   const email = clean(body.email);
   const phone = clean(body.phone, 80);
 
+  if (eventType === "cinema") {
+    return response.status(503).json({
+      ok: false,
+      message: "De ticketverkoop voor de openluchtcinema is tijdelijk gesloten.",
+    });
+  }
+
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return response.status(400).json({
       ok: false,
@@ -49,26 +54,18 @@ module.exports = async function handler(request, response) {
     });
   }
 
-  const order =
-    eventType === "bbq"
-      ? {
-          event: "RAC GP - Enkel BBQ",
-          bbqQuantity: asQuantity(body.bbqQuantity, 120),
-          adultQuantity: 0,
-          childQuantity: 0,
-        }
-      : {
-          event: "Openluchtcinema",
-          bbqQuantity: 0,
-          adultQuantity: asQuantity(body.adultQuantity, 500),
-          childQuantity: asQuantity(body.childQuantity, 500),
-        };
+  const order = {
+    event: "RAC GP - Enkel BBQ",
+    bbqQuantity: asQuantity(body.bbqQuantity, 120),
+    adultQuantity: 0,
+    childQuantity: 0,
+  };
 
   const totalQuantity =
     order.bbqQuantity + order.adultQuantity + order.childQuantity;
 
   if (
-    (eventType !== "bbq" && eventType !== "cinema") ||
+    eventType !== "bbq" ||
     totalQuantity < 1
   ) {
     return response.status(400).json({
@@ -91,10 +88,7 @@ module.exports = async function handler(request, response) {
     const params = new URLSearchParams({
       mode: "payment",
       success_url: `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url:
-        eventType === "bbq"
-          ? `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`
-          : `${SITE_URL}/openluchtcinema.html?betaling=geannuleerd#tickets`,
+      cancel_url: `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`,
       customer_email: email,
       client_reference_id: reservation.orderId,
       "metadata[order_id]": reservation.orderId,
@@ -108,25 +102,6 @@ module.exports = async function handler(request, response) {
     if (order.bbqQuantity) {
       appendLineItem(params, lineIndex++, "RAC GP - BBQ", BBQ_PRICE, order.bbqQuantity);
     }
-    if (order.adultQuantity) {
-      appendLineItem(
-        params,
-        lineIndex++,
-        "Openluchtcinema - Volwassene",
-        CINEMA_ADULT_PRICE,
-        order.adultQuantity,
-      );
-    }
-    if (order.childQuantity) {
-      appendLineItem(
-        params,
-        lineIndex,
-        "Openluchtcinema - Kind t.e.m. 12 jaar",
-        CINEMA_CHILD_PRICE,
-        order.childQuantity,
-      );
-    }
-
     const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
       headers: {
