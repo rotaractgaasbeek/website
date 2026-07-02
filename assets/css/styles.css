@@ -537,6 +537,43 @@ textarea {
   align-items: center;
 }
 
+.rally-cause {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(380px, 1.1fr);
+  gap: clamp(2rem, 6vw, 6rem);
+  align-items: start;
+}
+
+.rally-cause__body {
+  display: grid;
+  gap: 1rem;
+}
+
+.rally-cause__body p {
+  margin: 0;
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+
+.rally-cause__commitment {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.75rem;
+  padding: 1.25rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.24);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.24);
+}
+
+.rally-cause__commitment strong {
+  color: #FFB7D4;
+  font-size: 1.35rem;
+}
+
+.rally-cause__commitment span {
+  color: var(--paper);
+}
+
 .club-info {
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -1554,6 +1591,7 @@ textarea {
 
   .section-head--split,
   .story-grid,
+  .rally-cause,
   .club-info__layout,
   .calendar-grid,
   .contact-layout,

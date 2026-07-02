@@ -306,10 +306,10 @@ const ticketPrices = {
   cinema: {
     ratatouilleAdultQuantity: 1600,
     ratatouilleChildQuantity: 1200,
-    ratatouilleGiftQuantity: 1600,
+    ratatouilleGiftQuantity: 1200,
     orientAdultQuantity: 1600,
     orientChildQuantity: 1200,
-    orientGiftQuantity: 1600,
+    orientGiftQuantity: 1200,
   },
 };
 

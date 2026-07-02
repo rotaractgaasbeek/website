@@ -7,7 +7,7 @@ const SITE_URL = process.env.SITE_URL || "https://www.rotaractgaasbeek.be";
 const BBQ_PRICE = 10000;
 const CINEMA_ADULT_PRICE = 1600;
 const CINEMA_CHILD_PRICE = 1200;
-const CINEMA_GIFT_PRICE = 1600;
+const CINEMA_GIFT_PRICE = 1200;
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);

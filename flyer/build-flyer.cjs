@@ -133,7 +133,7 @@ async function main() {
   ${text(200, 1935, "8u", { size: 94, weight: 900, fill: "#123c69" })}
   ${lines(200, 2040, ["Ontbijt &amp;", "ontvangst"], { size: 55, weight: 900, fill: "#18212c", lineHeight: 60 })}
   ${text(200, 2195, "LINDEMANS", { size: 43, weight: 900, fill: "#d41367", spacing: 1.5 })}
-  ${text(200, 2245, "in Lennik", { size: 33, weight: 700, fill: "#5c6875" })}
+  ${text(200, 2245, "in Vlezenbeek", { size: 33, weight: 700, fill: "#5c6875" })}
 
   <g filter="url(#shadow)">
     ${roundedRect(990, 1715, 1360, 570, 40, "#123c69")}

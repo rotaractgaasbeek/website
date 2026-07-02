@@ -88,10 +88,10 @@ function reserveCinemaTickets(data, spreadsheetId) {
   const totalCents =
     order.ratatouilleAdultQuantity * 1600 +
     order.ratatouilleChildQuantity * 1200 +
-    order.ratatouilleGiftQuantity * 1600 +
+    order.ratatouilleGiftQuantity * 1200 +
     order.orientAdultQuantity * 1600 +
     order.orientChildQuantity * 1200 +
-    order.orientGiftQuantity * 1600;
+    order.orientGiftQuantity * 1200;
   const orderId =
     "CINEMA-" +
     Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
