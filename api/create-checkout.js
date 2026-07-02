@@ -1,7 +1,13 @@
-const { callGoogleAppsScript } = require("./_lib/google-apps-script");
+const {
+  callGoogleAppsScript,
+  callCinemaGoogleAppsScript,
+} = require("./_lib/google-apps-script");
 
 const SITE_URL = process.env.SITE_URL || "https://www.rotaractgaasbeek.be";
 const BBQ_PRICE = 10000;
+const CINEMA_ADULT_PRICE = 1600;
+const CINEMA_CHILD_PRICE = 1200;
+const CINEMA_GIFT_PRICE = 1600;
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);
@@ -40,13 +46,6 @@ module.exports = async function handler(request, response) {
   const email = clean(body.email);
   const phone = clean(body.phone, 80);
 
-  if (eventType === "cinema") {
-    return response.status(503).json({
-      ok: false,
-      message: "De ticketverkoop voor de openluchtcinema is tijdelijk gesloten.",
-    });
-  }
-
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return response.status(400).json({
       ok: false,
@@ -54,20 +53,41 @@ module.exports = async function handler(request, response) {
     });
   }
 
-  const order = {
-    event: "RAC GP - Enkel BBQ",
-    bbqQuantity: asQuantity(body.bbqQuantity, 120),
-    adultQuantity: 0,
-    childQuantity: 0,
-  };
+  if (eventType !== "bbq" && eventType !== "cinema") {
+    return response.status(400).json({ ok: false, message: "Onbekend evenement." });
+  }
 
-  const totalQuantity =
-    order.bbqQuantity + order.adultQuantity + order.childQuantity;
+  const order = eventType === "cinema"
+    ? {
+        event: "Openluchtcinema 2026",
+        ratatouilleAdultQuantity: asQuantity(body.ratatouilleAdultQuantity, 500),
+        ratatouilleChildQuantity: asQuantity(body.ratatouilleChildQuantity, 500),
+        ratatouilleGiftQuantity: asQuantity(body.ratatouilleGiftQuantity, 500),
+        orientAdultQuantity: asQuantity(body.orientAdultQuantity, 500),
+        orientChildQuantity: asQuantity(body.orientChildQuantity, 500),
+        orientGiftQuantity: asQuantity(body.orientGiftQuantity, 500),
+      }
+    : {
+        event: "RAC GP - Enkel BBQ",
+        bbqQuantity: asQuantity(body.bbqQuantity, 120),
+      };
 
-  if (
-    eventType !== "bbq" ||
-    totalQuantity < 1
-  ) {
+  const quantityFields = eventType === "cinema"
+    ? [
+        "ratatouilleAdultQuantity",
+        "ratatouilleChildQuantity",
+        "ratatouilleGiftQuantity",
+        "orientAdultQuantity",
+        "orientChildQuantity",
+        "orientGiftQuantity",
+      ]
+    : ["bbqQuantity"];
+  const totalQuantity = quantityFields.reduce(
+    (total, field) => total + order[field],
+    0,
+  );
+
+  if (totalQuantity < 1) {
     return response.status(400).json({
       ok: false,
       message: "Kies minstens één ticket.",
@@ -77,7 +97,11 @@ module.exports = async function handler(request, response) {
   let reservation;
 
   try {
-    reservation = await callGoogleAppsScript({
+    const appsScript = eventType === "cinema"
+      ? callCinemaGoogleAppsScript
+      : callGoogleAppsScript;
+
+    reservation = await appsScript({
       action: "reserve_tickets",
       ...order,
       name,
@@ -88,7 +112,9 @@ module.exports = async function handler(request, response) {
     const params = new URLSearchParams({
       mode: "payment",
       success_url: `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`,
+      cancel_url: eventType === "cinema"
+        ? `${SITE_URL}/openluchtcinema.html?betaling=geannuleerd#tickets`
+        : `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`,
       customer_email: email,
       client_reference_id: reservation.orderId,
       "metadata[order_id]": reservation.orderId,
@@ -101,6 +127,24 @@ module.exports = async function handler(request, response) {
     let lineIndex = 0;
     if (order.bbqQuantity) {
       appendLineItem(params, lineIndex++, "RAC GP - BBQ", BBQ_PRICE, order.bbqQuantity);
+    }
+    if (order.ratatouilleAdultQuantity) {
+      appendLineItem(params, lineIndex++, "Ratatouille - ticket 13+", CINEMA_ADULT_PRICE, order.ratatouilleAdultQuantity);
+    }
+    if (order.ratatouilleChildQuantity) {
+      appendLineItem(params, lineIndex++, "Ratatouille - ticket t.e.m. 12 jaar", CINEMA_CHILD_PRICE, order.ratatouilleChildQuantity);
+    }
+    if (order.ratatouilleGiftQuantity) {
+      appendLineItem(params, lineIndex++, "Ratatouille - schenkticket VZW De Poel", CINEMA_GIFT_PRICE, order.ratatouilleGiftQuantity);
+    }
+    if (order.orientAdultQuantity) {
+      appendLineItem(params, lineIndex++, "Murder on the Orient Express - ticket 13+", CINEMA_ADULT_PRICE, order.orientAdultQuantity);
+    }
+    if (order.orientChildQuantity) {
+      appendLineItem(params, lineIndex++, "Murder on the Orient Express - ticket t.e.m. 12 jaar", CINEMA_CHILD_PRICE, order.orientChildQuantity);
+    }
+    if (order.orientGiftQuantity) {
+      appendLineItem(params, lineIndex++, "Murder on the Orient Express - schenkticket VZW De Poel", CINEMA_GIFT_PRICE, order.orientGiftQuantity);
     }
     const stripeResponse = await fetch("https://api.stripe.com/v1/checkout/sessions", {
       method: "POST",
@@ -116,7 +160,7 @@ module.exports = async function handler(request, response) {
       throw new Error(checkout.error?.message || "Stripe Checkout kon niet worden gestart.");
     }
 
-    await callGoogleAppsScript({
+    await appsScript({
       action: "attach_checkout",
       orderId: reservation.orderId,
       stripeSessionId: checkout.id,
@@ -125,7 +169,10 @@ module.exports = async function handler(request, response) {
     return response.status(200).json({ ok: true, url: checkout.url });
   } catch (error) {
     if (reservation?.orderId) {
-      await callGoogleAppsScript({
+      const appsScript = eventType === "cinema"
+        ? callCinemaGoogleAppsScript
+        : callGoogleAppsScript;
+      await appsScript({
         action: "release_reservation",
         orderId: reservation.orderId,
       }).catch(() => {});

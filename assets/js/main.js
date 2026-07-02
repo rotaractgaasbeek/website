@@ -303,6 +303,14 @@ if (rallyForm) {
 
 const ticketPrices = {
   bbq: { bbqQuantity: 10000 },
+  cinema: {
+    ratatouilleAdultQuantity: 1600,
+    ratatouilleChildQuantity: 1200,
+    ratatouilleGiftQuantity: 1600,
+    orientAdultQuantity: 1600,
+    orientChildQuantity: 1200,
+    orientGiftQuantity: 1600,
+  },
 };
 
 document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {

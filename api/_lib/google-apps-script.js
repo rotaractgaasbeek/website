@@ -1,6 +1,4 @@
-const callGoogleAppsScript = async (payload) => {
-  const webAppUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
-  const formSecret = process.env.RALLY_FORM_SECRET;
+const callAppsScript = async (payload, webAppUrl, formSecret) => {
 
   if (!webAppUrl || !formSecret) {
     throw new Error("Google Apps Script is nog niet geconfigureerd.");
@@ -29,4 +27,18 @@ const callGoogleAppsScript = async (payload) => {
   }
 };
 
-module.exports = { callGoogleAppsScript };
+const callGoogleAppsScript = (payload) =>
+  callAppsScript(
+    payload,
+    process.env.GOOGLE_APPS_SCRIPT_URL,
+    process.env.RALLY_FORM_SECRET,
+  );
+
+const callCinemaGoogleAppsScript = (payload) =>
+  callAppsScript(
+    payload,
+    process.env.CINEMA_GOOGLE_APPS_SCRIPT_URL,
+    process.env.CINEMA_FORM_SECRET,
+  );
+
+module.exports = { callGoogleAppsScript, callCinemaGoogleAppsScript };

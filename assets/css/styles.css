@@ -1249,6 +1249,69 @@ textarea {
   width: 100%;
 }
 
+.cinema-ticket-layout {
+  grid-template-columns: minmax(0, 0.75fr) minmax(520px, 1.25fr);
+}
+
+.cinema-ticket-panel {
+  gap: 1.15rem;
+}
+
+.cinema-ticket-group {
+  min-width: 0;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.cinema-ticket-group legend {
+  padding: 0 0.4rem;
+  color: var(--ink);
+  font-size: 1.08rem;
+  font-weight: 800;
+}
+
+.cinema-ticket-group legend span {
+  display: block;
+  color: var(--cranberry);
+  font-size: 0.72rem;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.cinema-ticket-options {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.cinema-ticket-options label {
+  min-height: 2.8rem;
+}
+
+.cinema-ticket-options label span {
+  display: block;
+  color: var(--cranberry);
+}
+
+.cinema-ticket-options .field--gift {
+  padding-left: 0.75rem;
+  border-left: 3px solid #F3B23C;
+}
+
+.gift-ticket-note {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  border-left: 5px solid #F3B23C;
+  background: #FFF4CF;
+}
+
+.gift-ticket-note p {
+  margin: 0.35rem 0 0;
+  color: var(--muted);
+}
+
 .ticket-quantities {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -1496,6 +1559,7 @@ textarea {
   .contact-layout,
   .rally-registration,
   .ticket-layout,
+  .cinema-ticket-layout,
   .event-detail,
   .footer-grid {
     grid-template-columns: 1fr;
@@ -1520,6 +1584,20 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .cinema-ticket-options {
+    grid-template-columns: 1fr;
+  }
+
+  .cinema-ticket-options label {
+    min-height: 0;
+  }
+
+  .cinema-ticket-options .field--gift {
+    padding-top: 0.75rem;
+    padding-left: 0;
+    border-top: 3px solid #F3B23C;
+    border-left: 0;
+  }
   .nav {
     width: min(100% - 1rem, var(--max));
     gap: 0.75rem;

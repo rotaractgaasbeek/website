@@ -51,13 +51,16 @@
 
 1. Push alle websitewijzigingen naar GitHub en wacht op de Vercel-deployment.
 2. Test eerst een cinema- en een BBQ-bestelling in Stripe-testmodus.
-3. Controleer of de bestelling in het tabblad **Ticketbestellingen** verschijnt.
-4. Controleer of na een geslaagde betaling de status **Betaald** wordt en beide
+3. Controleer of de BBQ-bestelling in de RAC GP-sheet verschijnt.
+4. Controleer of de cinemabestelling uitsluitend in de aparte spreadsheet
+   **Openluchtcinema ticketbestellingen 2026** verschijnt. Volg hiervoor ook
+   `apps-script/OPENLUCHTCINEMA-INSTALLATIE.md`.
+5. Controleer of na een geslaagde betaling de status **Betaald** wordt en beide
    e-mails aankomen.
-5. Zet daarna Stripe in livemodus.
-6. Vervang in Vercel `STRIPE_SECRET_KEY` door de live sleutel `sk_live_...`.
-7. Maak ook in livemodus dezelfde webhook aan en vervang
+6. Zet daarna Stripe in livemodus.
+7. Vervang in Vercel `STRIPE_SECRET_KEY` door de live sleutel `sk_live_...`.
+8. Maak ook in livemodus dezelfde webhook aan en vervang
    `STRIPE_WEBHOOK_SECRET` door de live `whsec_...`-sleutel.
-8. Voer in Vercel een nieuwe deployment uit.
+9. Voer in Vercel een nieuwe deployment uit.
 
 Plaats geheime Stripe-sleutels nooit in GitHub of in de openbare websitecode.

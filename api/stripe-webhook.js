@@ -1,5 +1,8 @@
 const crypto = require("crypto");
-const { callGoogleAppsScript } = require("./_lib/google-apps-script");
+const {
+  callGoogleAppsScript,
+  callCinemaGoogleAppsScript,
+} = require("./_lib/google-apps-script");
 
 const readRawBody = async (request) => {
   const chunks = [];
@@ -61,6 +64,9 @@ async function handler(request, response) {
   const event = JSON.parse(rawBody.toString("utf8"));
   const session = event.data?.object || {};
   const orderId = session.metadata?.order_id || session.client_reference_id;
+  const appsScript = session.metadata?.event === "cinema"
+    ? callCinemaGoogleAppsScript
+    : callGoogleAppsScript;
 
   try {
     if (
@@ -69,7 +75,7 @@ async function handler(request, response) {
         (event.type === "checkout.session.completed" &&
           session.payment_status === "paid"))
     ) {
-      await callGoogleAppsScript({
+      await appsScript({
         action: "payment_completed",
         orderId,
         stripeSessionId: session.id,
@@ -84,7 +90,7 @@ async function handler(request, response) {
       (event.type === "checkout.session.expired" ||
         event.type === "checkout.session.async_payment_failed")
     ) {
-      await callGoogleAppsScript({
+      await appsScript({
         action: "payment_failed",
         orderId,
         stripeSessionId: session.id,
