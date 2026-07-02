@@ -25,3 +25,5 @@ opnieuw implementeren.
 
 Na het vervangen van de code mag je `setupRacGp` opnieuw uitvoeren. De bestaande
 aanvragen blijven bewaard; de functie werkt alleen de kolomtitels en instellingen bij.
+Daarbij wordt de verouderde kolom **Reservatie verloopt** automatisch verwijderd.
+Nieuwe BBQ-bestellingen krijgen een kort nummer zoals `BBQ-2026-0001`.

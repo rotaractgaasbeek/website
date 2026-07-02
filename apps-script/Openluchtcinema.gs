@@ -92,12 +92,7 @@ function reserveCinemaTickets(data, spreadsheetId) {
     order.orientAdultQuantity * 1600 +
     order.orientChildQuantity * 1200 +
     order.orientGiftQuantity * 1200;
-  const orderId =
-    "CINEMA-" +
-    Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
-    "-" +
-    Utilities.getUuid().slice(0, 6).toUpperCase();
-  const expiresAt = new Date(Date.now() + 35 * 60 * 1000);
+  let orderId;
   const lock = LockService.getScriptLock();
 
   lock.waitLock(10000);
@@ -105,6 +100,7 @@ function reserveCinemaTickets(data, spreadsheetId) {
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     const sheet = ensureCinemaSheet(spreadsheet);
     expireCinemaReservations(sheet);
+    orderId = nextCinemaOrderId(sheet);
     sheet.appendRow([
       new Date(),
       orderId,
@@ -119,7 +115,6 @@ function reserveCinemaTickets(data, spreadsheetId) {
       order.orientGiftQuantity,
       totalCents / 100,
       "Gereserveerd",
-      expiresAt,
       "",
       "",
       "Nee",
@@ -143,7 +138,7 @@ function updateCinemaOrder(data, spreadsheetId, status) {
 
   sheet.getRange(row, 13).setValue(status);
   if (data.stripeSessionId) {
-    sheet.getRange(row, 15).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 14).setValue(cleanValue(data.stripeSessionId, 180));
   }
   return jsonResponse({ ok: true, orderId: orderId });
 }
@@ -169,19 +164,19 @@ function completeCinemaPayment(data, spreadsheetId) {
     }
 
     sheet.getRange(row, 13).setValue("Betaald");
-    sheet.getRange(row, 15).setValue(cleanValue(data.stripeSessionId, 180));
-    sheet.getRange(row, 16).setValue(cleanValue(data.paymentIntentId, 180));
-    order = cinemaOrderFromRow(sheet.getRange(row, 1, 1, 17).getValues()[0]);
+    sheet.getRange(row, 14).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 15).setValue(cleanValue(data.paymentIntentId, 180));
+    order = cinemaOrderFromRow(sheet.getRange(row, 1, 1, 16).getValues()[0]);
   } finally {
     lock.releaseLock();
   }
 
   try {
     sendCinemaTicketEmails(order);
-    sheet.getRange(row, 17).setValue("Ja");
+    sheet.getRange(row, 16).setValue("Ja");
   } catch (error) {
     console.error(error);
-    sheet.getRange(row, 17).setValue("Nee - controleer Apps Script");
+    sheet.getRange(row, 16).setValue("Nee - controleer Apps Script");
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
@@ -194,6 +189,13 @@ function ensureCinemaSheet(spreadsheet) {
     sheet = sheets.length === 1 && sheets[0].getLastRow() === 0
       ? sheets[0].setName(CINEMA_SHEET_NAME)
       : spreadsheet.insertSheet(CINEMA_SHEET_NAME);
+  }
+
+  if (
+    sheet.getLastColumn() >= 14 &&
+    sheet.getRange(1, 14).getValue() === "Reservatie verloopt"
+  ) {
+    sheet.deleteColumn(14);
   }
 
   const headers = [
@@ -210,7 +212,6 @@ function ensureCinemaSheet(spreadsheet) {
     "Murder on the Orient Express schenktickets",
     "Totaal euro",
     "Status",
-    "Reservatie verloopt",
     "Stripe Checkout Session",
     "Stripe Payment Intent",
     "Bevestigingsmail verstuurd",
@@ -252,17 +253,41 @@ function cinemaQuantityFields() {
 
 function expireCinemaReservations(sheet) {
   if (sheet.getLastRow() < 2) return;
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 17).getValues();
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 16).getValues();
   const now = new Date();
   rows.forEach(function (values, index) {
     if (
       (values[12] === "Gereserveerd" || values[12] === "Checkout gestart") &&
-      values[13] instanceof Date &&
-      values[13] < now
+      values[0] instanceof Date &&
+      now.getTime() - values[0].getTime() > 35 * 60 * 1000
     ) {
       sheet.getRange(index + 2, 13).setValue("Verlopen");
     }
   });
+}
+
+function nextCinemaOrderId(sheet) {
+  const properties = PropertiesService.getScriptProperties();
+  const propertyName = "CINEMA_ORDER_SEQUENCE_2026";
+  const storedSequence = properties.getProperty(propertyName);
+  let sequence = storedSequence === null ? NaN : Number(storedSequence);
+
+  if (!Number.isInteger(sequence) || sequence < 0) {
+    sequence = 0;
+    if (sheet.getLastRow() >= 2) {
+      sheet
+        .getRange(2, 2, sheet.getLastRow() - 1, 1)
+        .getValues()
+        .forEach(function (row) {
+          const match = String(row[0] || "").match(/^CIN-2026-(\d+)$/);
+          if (match) sequence = Math.max(sequence, Number(match[1]));
+        });
+    }
+  }
+
+  sequence += 1;
+  properties.setProperty(propertyName, String(sequence));
+  return "CIN-2026-" + Utilities.formatString("%04d", sequence);
 }
 
 function findCinemaOrderRow(sheet, orderId) {

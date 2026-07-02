@@ -337,12 +337,7 @@ function reserveTickets(data, spreadsheetId) {
     order.bbqQuantity * 10000 +
     order.adultQuantity * 1500 +
     order.childQuantity * 1000;
-  const orderId =
-    "TICKET-" +
-    Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
-    "-" +
-    Utilities.getUuid().slice(0, 6).toUpperCase();
-  const expiresAt = new Date(Date.now() + 35 * 60 * 1000);
+  let orderId;
   const lock = LockService.getScriptLock();
 
   lock.waitLock(10000);
@@ -366,6 +361,8 @@ function reserveTickets(data, spreadsheetId) {
       }
     }
 
+    orderId = nextTicketOrderId(sheet);
+
     sheet.appendRow([
       new Date(),
       orderId,
@@ -378,7 +375,6 @@ function reserveTickets(data, spreadsheetId) {
       order.childQuantity,
       totalCents / 100,
       "Gereserveerd",
-      expiresAt,
       "",
       "",
       "Nee",
@@ -403,7 +399,7 @@ function updateTicketOrder(data, spreadsheetId, status) {
 
   sheet.getRange(row, 11).setValue(status);
   if (data.stripeSessionId) {
-    sheet.getRange(row, 13).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 12).setValue(cleanValue(data.stripeSessionId, 180));
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
@@ -432,10 +428,10 @@ function completeTicketPayment(data, spreadsheetId) {
     }
 
     sheet.getRange(row, 11).setValue("Betaald");
-    sheet.getRange(row, 13).setValue(cleanValue(data.stripeSessionId, 180));
-    sheet.getRange(row, 14).setValue(cleanValue(data.paymentIntentId, 180));
+    sheet.getRange(row, 12).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 13).setValue(cleanValue(data.paymentIntentId, 180));
 
-    const values = sheet.getRange(row, 1, 1, 15).getValues()[0];
+    const values = sheet.getRange(row, 1, 1, 14).getValues()[0];
     order = ticketOrderFromRow(values);
   } finally {
     lock.releaseLock();
@@ -443,10 +439,10 @@ function completeTicketPayment(data, spreadsheetId) {
 
   try {
     sendTicketEmails(order);
-    sheet.getRange(row, 15).setValue("Ja");
+    sheet.getRange(row, 14).setValue("Ja");
   } catch (error) {
     console.error(error);
-    sheet.getRange(row, 15).setValue("Nee - controleer Apps Script");
+    sheet.getRange(row, 14).setValue("Nee - controleer Apps Script");
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
@@ -454,12 +450,18 @@ function completeTicketPayment(data, spreadsheetId) {
 
 function ensureTicketSheet(spreadsheet) {
   let sheet = spreadsheet.getSheetByName(TICKET_SHEET_NAME);
-  if (sheet) {
-    return sheet;
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(TICKET_SHEET_NAME);
   }
 
-  sheet = spreadsheet.insertSheet(TICKET_SHEET_NAME);
-  sheet.appendRow([
+  if (
+    sheet.getLastColumn() >= 12 &&
+    sheet.getRange(1, 12).getValue() === "Reservatie verloopt"
+  ) {
+    sheet.deleteColumn(12);
+  }
+
+  const headers = [
     "Aangemaakt op",
     "Bestelnummer",
     "Event",
@@ -471,17 +473,17 @@ function ensureTicketSheet(spreadsheet) {
     "Kinderen t.e.m. 12 jaar",
     "Totaal euro",
     "Status",
-    "Reservatie verloopt",
     "Stripe Checkout Session",
     "Stripe Payment Intent",
     "Bevestigingsmail verstuurd",
-  ]);
+  ];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   sheet.setFrozenRows(1);
-  sheet.getRange(1, 1, 1, 15)
+  sheet.getRange(1, 1, 1, headers.length)
     .setBackground("#D41367")
     .setFontColor("#FFFFFF")
     .setFontWeight("bold");
-  sheet.autoResizeColumns(1, 15);
+  sheet.autoResizeColumns(1, headers.length);
   return sheet;
 }
 
@@ -490,16 +492,16 @@ function expireOldReservations(sheet) {
     return;
   }
 
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 15).getValues();
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 14).getValues();
   const now = new Date();
 
   rows.forEach(function (row, index) {
     const status = row[10];
-    const expiresAt = row[11];
+    const createdAt = row[0];
     if (
       (status === "Gereserveerd" || status === "Checkout gestart") &&
-      expiresAt instanceof Date &&
-      expiresAt < now
+      createdAt instanceof Date &&
+      now.getTime() - createdAt.getTime() > 35 * 60 * 1000
     ) {
       sheet.getRange(index + 2, 11).setValue("Verlopen");
     }
@@ -512,7 +514,7 @@ function countReservedBbqTickets(sheet) {
   }
 
   return sheet
-    .getRange(2, 1, sheet.getLastRow() - 1, 15)
+    .getRange(2, 1, sheet.getLastRow() - 1, 14)
     .getValues()
     .reduce(function (total, row) {
       const status = row[10];
@@ -522,6 +524,30 @@ function countReservedBbqTickets(sheet) {
         ? total + Number(row[6] || 0)
         : total;
     }, 0);
+}
+
+function nextTicketOrderId(sheet) {
+  const properties = PropertiesService.getScriptProperties();
+  const propertyName = "BBQ_ORDER_SEQUENCE_2026";
+  const storedSequence = properties.getProperty(propertyName);
+  let sequence = storedSequence === null ? NaN : Number(storedSequence);
+
+  if (!Number.isInteger(sequence) || sequence < 0) {
+    sequence = 0;
+    if (sheet.getLastRow() >= 2) {
+      sheet
+        .getRange(2, 2, sheet.getLastRow() - 1, 1)
+        .getValues()
+        .forEach(function (row) {
+          const match = String(row[0] || "").match(/^BBQ-2026-(\d+)$/);
+          if (match) sequence = Math.max(sequence, Number(match[1]));
+        });
+    }
+  }
+
+  sequence += 1;
+  properties.setProperty(propertyName, String(sequence));
+  return "BBQ-2026-" + Utilities.formatString("%04d", sequence);
 }
 
 function findTicketOrderRow(sheet, orderId) {

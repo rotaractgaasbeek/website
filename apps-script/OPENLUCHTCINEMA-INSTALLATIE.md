@@ -28,3 +28,7 @@ nieuwe spreadsheet **Openluchtcinema ticketbestellingen 2026** te verschijnen.
 
 Bij wijzigingen aan `Openluchtcinema.gs` moet je via
 **Implementeren → Implementaties beheren → Bewerken → Nieuwe versie** opnieuw implementeren.
+
+Voer na deze update ook `setupOpenluchtcinema` opnieuw uit. Bestaande bestellingen
+blijven bewaard, de kolom **Reservatie verloopt** wordt automatisch verwijderd en
+nieuwe bestellingen krijgen een kort nummer zoals `CIN-2026-0001`.
