@@ -223,19 +223,6 @@ textarea {
   background: var(--cranberry-dark);
 }
 
-.button--soft-cta {
-  color: var(--cranberry-dark);
-  background: var(--cranberry-soft);
-  border-color: rgba(212, 19, 103, 0.32);
-  box-shadow: 0 12px 28px rgba(212, 19, 103, 0.12);
-}
-
-.button--soft-cta:hover {
-  color: var(--paper);
-  background: var(--cranberry);
-  border-color: var(--cranberry);
-}
-
 .button--secondary {
   color: var(--paper);
   background: rgba(255, 255, 255, 0.16);
