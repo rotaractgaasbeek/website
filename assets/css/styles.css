@@ -223,6 +223,17 @@ textarea {
   background: var(--cranberry-dark);
 }
 
+.button--gold {
+  color: var(--ink);
+  background: var(--gold);
+  box-shadow: 0 14px 30px rgba(243, 178, 60, 0.3);
+}
+
+.button--gold:hover {
+  color: var(--ink);
+  background: #E2A12B;
+}
+
 .button--secondary {
   color: var(--paper);
   background: rgba(255, 255, 255, 0.16);
@@ -833,6 +844,18 @@ textarea {
   color: var(--muted);
 }
 
+.event-detail__main .button--secondary {
+  color: var(--ink);
+  background: var(--paper);
+  border-color: var(--line);
+}
+
+.event-detail__main .button--secondary:hover {
+  color: var(--cranberry);
+  border-color: rgba(212, 19, 103, 0.35);
+  box-shadow: 0 12px 30px rgba(24, 33, 44, 0.08);
+}
+
 .event-program {
   margin-top: 1.5rem;
 }
@@ -1301,6 +1324,16 @@ textarea {
   text-transform: uppercase;
 }
 
+.cinema-ticket-time {
+  margin: 0 0 0.85rem;
+  padding: 0.7rem 0.8rem;
+  color: var(--ink);
+  background: #FFF4CF;
+  border-left: 4px solid var(--gold);
+  border-radius: var(--radius);
+  font-weight: 850;
+}
+
 .cinema-ticket-options {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1331,6 +1364,49 @@ textarea {
 .gift-ticket-note p {
   margin: 0.35rem 0 0;
   color: var(--muted);
+}
+
+.cinema-times {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+.cinema-time-card {
+  padding: 1rem;
+  border: 1px solid rgba(212, 19, 103, 0.18);
+  border-top: 4px solid var(--cranberry);
+  border-radius: var(--radius);
+  background: #FFF4CF;
+}
+
+.cinema-time-card span,
+.cinema-time-card small {
+  display: block;
+}
+
+.cinema-time-card span {
+  color: var(--cranberry);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.cinema-time-card strong {
+  display: block;
+  margin-top: 0.25rem;
+  color: var(--ink);
+  font-size: clamp(1.25rem, 2.4vw, 1.75rem);
+  line-height: 1.05;
+}
+
+.cinema-time-card small {
+  margin-top: 0.25rem;
+  color: var(--muted);
+  font-size: 1rem;
+  font-weight: 800;
 }
 
 .ticket-quantities {
@@ -1770,6 +1846,10 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .cinema-times {
+    grid-template-columns: 1fr;
+  }
+
   .cinema-ticket-options {
     grid-template-columns: 1fr;
   }
