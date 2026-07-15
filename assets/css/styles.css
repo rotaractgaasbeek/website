@@ -223,15 +223,17 @@ textarea {
   background: var(--cranberry-dark);
 }
 
-.button--gold {
-  color: var(--ink);
-  background: var(--gold);
-  box-shadow: 0 14px 30px rgba(243, 178, 60, 0.3);
+.button--soft-cta {
+  color: var(--cranberry-dark);
+  background: var(--cranberry-soft);
+  border-color: rgba(212, 19, 103, 0.32);
+  box-shadow: 0 12px 28px rgba(212, 19, 103, 0.12);
 }
 
-.button--gold:hover {
-  color: var(--ink);
-  background: #E2A12B;
+.button--soft-cta:hover {
+  color: var(--paper);
+  background: var(--cranberry);
+  border-color: var(--cranberry);
 }
 
 .button--secondary {
