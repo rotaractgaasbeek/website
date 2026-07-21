@@ -327,10 +327,11 @@ const isSafari =
   /Safari/.test(paymentUserAgent) &&
   /Apple/.test(paymentVendor) &&
   !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
+const isChromiumBrowser = /Chrome|Chromium|Edg|OPR/.test(paymentUserAgent);
+const isFirefox = /Firefox|FxiOS/.test(paymentUserAgent);
 const isIOS = /iPhone|iPad|iPod/.test(paymentUserAgent);
-const canUseApplePay = isAppleDevice && isSafari;
-const canUseGooglePay =
-  !isIOS && /Chrome|Chromium|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
+const canUseApplePay = isAppleDevice && (isSafari || isChromiumBrowser);
+const canUseGooglePay = !isIOS && (isChromiumBrowser || isFirefox || isSafari);
 let stripeInstancePromise;
 
 const updateWalletOption = (ticketForm, method, isAvailable, availableText, unavailableText) => {
@@ -416,11 +417,11 @@ const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, st
   const methodLabel = walletLabels[paymentMethod] || "wallet";
 
   if (paymentMethod === "apple_pay" && !canUseApplePay) {
-    throw new Error("Apple Pay werkt hier alleen in Safari op een Apple-toestel.");
+    throw new Error("Apple Pay werkt hier alleen in Safari of Chrome/Edge op een Apple-toestel.");
   }
 
   if (paymentMethod === "google_pay" && !canUseGooglePay) {
-    throw new Error("Google Pay werkt hier alleen in Chrome of Edge met Google Pay.");
+    throw new Error("Google Pay werkt hier alleen in een ondersteunde browser met Google Pay.");
   }
 
   const panel = ensureWalletPanel(ticketForm);
@@ -575,15 +576,15 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
     ticketForm,
     "apple_pay",
     canUseApplePay,
-    "Opent op deze pagina via Safari",
-    "Gebruik Safari op een Apple-toestel",
+    "Opent op deze pagina via Safari of Chrome/Edge op Mac",
+    "Gebruik Safari of Chrome/Edge op een Apple-toestel",
   );
   updateWalletOption(
     ticketForm,
     "google_pay",
     canUseGooglePay,
-    "Opent op deze pagina via Chrome of Edge",
-    "Alleen actief in Chrome of Edge",
+    "Opent op deze pagina via ondersteunde browsers",
+    "Gebruik een ondersteunde browser met Google Pay",
   );
 
   ticketForm.addEventListener("submit", async (event) => {

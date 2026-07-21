@@ -143,7 +143,7 @@ module.exports = async function handler(request, response) {
     };
 
     if (useExpressWallet) {
-      checkoutParams.ui_mode = "custom";
+      checkoutParams.ui_mode = "elements";
       checkoutParams.return_url =
         `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`;
     } else {
