@@ -8,9 +8,11 @@
    - **Cards**
    - **Bancontact**
    - **iDEAL**
-4. De website laat bezoekers eerst zelf kiezen tussen **Bancontact**, **iDEAL** en **betaalkaart**. Die keuze wordt als enige betaalmethode doorgestuurd naar Stripe Checkout.
-5. Apple Pay en Google Pay zijn in Stripe geen aparte websitekeuzes, maar wallets onder **betaalkaart**. Toon ze daarom niet als losse keuze op de website.
-6. Wil je Apple Pay helemaal vermijden, bijvoorbeeld omdat Apple in Firefox op Mac een scan-code kan tonen, zet **Use Apple Pay** uit in de Stripe Checkout-instellingen. Apple Pay met Touch ID is browser- en toestelafhankelijk en werkt het meest voorspelbaar via Safari op een geschikte Mac.
+4. Controleer in Stripe of wallets klaarstaan:
+   - **Apple Pay** werkt alleen op ondersteunde Apple-toestellen/browsers en wanneer het domein `www.rotaractgaasbeek.be` correct geregistreerd is.
+   - **Google Pay** verschijnt alleen wanneer Google Pay in Stripe actief is en de bezoeker een ondersteunde browser/toestel met geschikte betaalkaart gebruikt.
+5. De website laat bezoekers eerst zelf kiezen tussen **Apple Pay**, **Bancontact**, **iDEAL**, **betaalkaart** en **Google Pay**.
+6. Apple Pay en Google Pay worden technisch als **kaart/wallet** naar Stripe doorgestuurd. De website maakt Apple Pay alleen aanklikbaar in Safari met Apple Pay, zodat Firefox op Mac niet naar de Apple-scan-code wordt gestuurd.
 
 ## 2. Eerst in testmodus instellen
 

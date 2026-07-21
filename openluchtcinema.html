@@ -190,6 +190,10 @@
 
             <fieldset class="payment-method-choice">
               <legend>Betaalmethode</legend>
+              <label data-wallet-option="apple_pay" aria-disabled="true">
+                <input type="radio" name="paymentMethod" value="apple_pay" disabled>
+                <span><strong>Apple Pay</strong><small data-wallet-status>Beschikbaar via ondersteunde Apple-browser</small></span>
+              </label>
               <label>
                 <input type="radio" name="paymentMethod" value="bancontact" checked>
                 <span><strong>Bancontact</strong></span>
@@ -201,6 +205,10 @@
               <label>
                 <input type="radio" name="paymentMethod" value="card">
                 <span><strong>Betaalkaart</strong></span>
+              </label>
+              <label data-wallet-option="google_pay" aria-disabled="true">
+                <input type="radio" name="paymentMethod" value="google_pay" disabled>
+                <span><strong>Google Pay</strong><small data-wallet-status>Beschikbaar via ondersteunde Google-browser</small></span>
               </label>
             </fieldset>
 

@@ -313,6 +313,44 @@ const ticketPrices = {
   },
 };
 
+const paymentUserAgent = window.navigator.userAgent || "";
+const paymentVendor = window.navigator.vendor || "";
+const paymentPlatform = window.navigator.platform || "";
+const isAppleDevice =
+  /iPhone|iPad|iPod|Mac/.test(paymentUserAgent) || /Mac|iPhone|iPad|iPod/.test(paymentPlatform);
+const isSafari =
+  /Safari/.test(paymentUserAgent) &&
+  /Apple/.test(paymentVendor) &&
+  !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
+const hasApplePaySession =
+  typeof window.ApplePaySession !== "undefined" &&
+  typeof window.ApplePaySession.canMakePayments === "function" &&
+  window.ApplePaySession.canMakePayments();
+const canUseApplePay = isAppleDevice && isSafari && hasApplePaySession;
+const isIOS = /iPhone|iPad|iPod/.test(paymentUserAgent);
+const canUseGooglePay =
+  !isIOS && /Chrome|Chromium|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
+
+const updateWalletOption = (ticketForm, method, isAvailable, availableText, unavailableText) => {
+  const input = ticketForm.querySelector(`input[name="paymentMethod"][value="${method}"]`);
+  const label = input?.closest("label");
+  const status = label?.querySelector("[data-wallet-status]");
+
+  if (!input || !label) return;
+
+  input.disabled = !isAvailable;
+  label.setAttribute("aria-disabled", String(!isAvailable));
+
+  if (status) {
+    status.textContent = isAvailable ? availableText : unavailableText;
+  }
+
+  if (!isAvailable && input.checked) {
+    const fallback = ticketForm.querySelector('input[name="paymentMethod"][value="bancontact"]');
+    if (fallback) fallback.checked = true;
+  }
+};
+
 document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
   const eventType = ticketForm.dataset.ticketEvent;
   const quantities = [...ticketForm.querySelectorAll("[data-ticket-quantity]")];
@@ -334,6 +372,20 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
 
   quantities.forEach((input) => input.addEventListener("input", updateTicketTotal));
   updateTicketTotal();
+  updateWalletOption(
+    ticketForm,
+    "apple_pay",
+    canUseApplePay,
+    "Klaar voor Apple Pay",
+    "Alleen actief in Safari met Apple Pay",
+  );
+  updateWalletOption(
+    ticketForm,
+    "google_pay",
+    canUseGooglePay,
+    "Klaar voor Google Pay",
+    "Alleen actief in Chrome of Edge",
+  );
 
   ticketForm.addEventListener("submit", async (event) => {
     event.preventDefault();
