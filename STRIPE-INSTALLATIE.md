@@ -4,7 +4,12 @@
 
 1. Meld aan bij https://dashboard.stripe.com.
 2. Vul de bedrijfs- en uitbetalingsgegevens van Rotaract Gaasbeek Pajottenland in.
-3. Activeer onder **Settings → Payment methods** de betaalmethode **Bancontact**.
+3. Activeer onder **Settings → Payment methods** minstens:
+   - **Cards**
+   - **Bancontact**
+   - **iDEAL**
+   - wallets zoals **Apple Pay** en **Google Pay**, als Stripe die voor het account en domein aanbiedt.
+4. Controleer in Stripe of het domein `www.rotaractgaasbeek.be` klaarstaat voor wallets. Apple Pay en Google Pay verschijnen alleen wanneer Stripe, de browser en het toestel die betaalmethode ondersteunen.
 
 ## 2. Eerst in testmodus instellen
 
