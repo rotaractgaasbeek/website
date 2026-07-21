@@ -1501,14 +1501,6 @@ textarea {
   display: block;
 }
 
-.payment-method-choice small {
-  display: block;
-  margin-top: 0.15rem;
-  color: var(--muted);
-  font-size: 0.78rem;
-  line-height: 1.35;
-}
-
 .wallet-checkout {
   display: grid;
   gap: 0.75rem;
@@ -1521,12 +1513,6 @@ textarea {
 
 .wallet-checkout[hidden] {
   display: none;
-}
-
-.wallet-checkout__intro {
-  margin: 0;
-  color: var(--ink);
-  font-weight: 780;
 }
 
 .wallet-checkout__element {

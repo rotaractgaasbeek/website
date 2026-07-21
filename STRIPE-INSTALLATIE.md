@@ -32,6 +32,10 @@
    - Value: `https://www.rotaractgaasbeek.be`
    - Environments: Production en Preview
 7. Registreer `www.rotaractgaasbeek.be` in Stripe bij de betaalmethode-domeinen voor Apple Pay/Google Pay, zowel in testmodus als later in livemodus.
+8. Controleer na de deployment of de website de publieke sleutel ziet door
+   `https://www.rotaractgaasbeek.be/api/stripe-config` te openen. Daar moet
+   `"ok":true` staan. Staat er `"ok":false`, dan mist Vercel nog een geldige
+   `STRIPE_PUBLISHABLE_KEY` of is er nog geen redeploy gebeurd.
 
 ## 3. Webhook toevoegen
 
