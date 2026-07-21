@@ -330,7 +330,12 @@ const isSafari =
 const isChromiumBrowser = /Chrome|Chromium|Edg|OPR/.test(paymentUserAgent);
 const isFirefox = /Firefox|FxiOS/.test(paymentUserAgent);
 const isIOS = /iPhone|iPad|iPod/.test(paymentUserAgent);
-const canUseApplePay = isAppleDevice && (isSafari || isChromiumBrowser);
+const canUseApplePay =
+  isAppleDevice &&
+  isSafari &&
+  typeof window.ApplePaySession !== "undefined" &&
+  (typeof window.ApplePaySession.canMakePayments !== "function" ||
+    window.ApplePaySession.canMakePayments());
 const canUseGooglePay = !isIOS && (isChromiumBrowser || isFirefox || isSafari);
 let stripeInstancePromise;
 const WALLET_SETUP_TIMEOUT_MS = 25000;
@@ -416,6 +421,40 @@ const loadStripeInstance = async () => {
   return stripeInstancePromise;
 };
 
+const initializeStripeCheckout = async (stripe, clientSecret) => {
+  const initCheckout = stripe.initCheckoutElementsSdk || stripe.initCheckout;
+
+  if (typeof initCheckout !== "function") {
+    throw new Error("Stripe Checkout kon niet worden geladen. Probeer de pagina opnieuw.");
+  }
+
+  return Promise.resolve(initCheckout.call(stripe, { clientSecret }));
+};
+
+const registerStripeElementEvent = (element, eventName, handler) => {
+  try {
+    element.on(eventName, handler);
+  } catch (error) {
+    // Older Stripe.js builds do not know every event name.
+  }
+};
+
+const walletMethodIsAvailable = (methods, paymentMethod) => {
+  if (!methods) return false;
+
+  const methodKey = paymentMethod === "apple_pay" ? "applePay" : "googlePay";
+
+  if (Array.isArray(methods)) {
+    return methods.includes(methodKey) || methods.includes(paymentMethod);
+  }
+
+  if (typeof methods === "object") {
+    return Boolean(methods[methodKey] || methods[paymentMethod]);
+  }
+
+  return Boolean(methods);
+};
+
 const ensureWalletPanel = (ticketForm) => {
   let panel = ticketForm.querySelector("[data-wallet-checkout]");
 
@@ -455,7 +494,7 @@ const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, st
   const methodLabel = walletLabels[paymentMethod] || "wallet";
 
   if (paymentMethod === "apple_pay" && !canUseApplePay) {
-    throw new Error("Apple Pay werkt hier alleen in Safari of Chrome/Edge op een Apple-toestel.");
+    throw new Error("Apple Pay werkt hier alleen in Safari met Apple Pay/Touch ID actief.");
   }
 
   if (paymentMethod === "google_pay" && !canUseGooglePay) {
@@ -489,9 +528,10 @@ const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, st
   }
 
   const stripe = await loadStripeInstance();
-  const checkout = stripe.initCheckout({
-    clientSecret: result.clientSecret,
-  });
+  const checkout = await withTimeout(
+    initializeStripeCheckout(stripe, result.clientSecret),
+    `${methodLabel} kon niet worden gestart. Kies Bancontact, iDEAL of betaalkaart, of probeer opnieuw.`,
+  );
   const expressCheckoutElement = checkout.createExpressCheckoutElement({
     buttonHeight: 50,
     buttonTheme: {
@@ -517,10 +557,12 @@ const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, st
   });
 
   const readyPromise = new Promise((resolve) => {
-    expressCheckoutElement.on("ready", ({ availablePaymentMethods }) => {
-      const methodKey = paymentMethod === "apple_pay" ? "applePay" : "googlePay";
+    let isResolved = false;
+    const resolveAvailability = (isAvailable) => {
+      if (isResolved) return;
+      isResolved = true;
 
-      if (!availablePaymentMethods?.[methodKey]) {
+      if (!isAvailable) {
         if (walletStatus) {
           walletStatus.textContent =
             `${methodLabel} is niet beschikbaar op deze browser of dit toestel. ` +
@@ -538,6 +580,24 @@ const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, st
         walletStatus.className = "form-status";
       }
       resolve(true);
+    };
+
+    const handleAvailability = (event = {}) => {
+      const methods = event.availablePaymentMethods || event.paymentMethods;
+      resolveAvailability(walletMethodIsAvailable(methods, paymentMethod));
+    };
+
+    registerStripeElementEvent(expressCheckoutElement, "ready", handleAvailability);
+    registerStripeElementEvent(
+      expressCheckoutElement,
+      "availablepaymentmethodschange",
+      handleAvailability,
+    );
+    registerStripeElementEvent(expressCheckoutElement, "loaderror", (event = {}) => {
+      resolveAvailability(false);
+      if (walletStatus && event.error?.message) {
+        walletStatus.textContent = event.error.message;
+      }
     });
   });
 
