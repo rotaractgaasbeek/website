@@ -191,6 +191,10 @@
             <fieldset class="payment-method-choice">
               <legend>Betaalmethode</legend>
               <label>
+                <input type="radio" name="paymentMethod" value="apple_pay">
+                <span><strong>Apple Pay</strong><small>Gebruik Safari op Mac voor betalen met Touch ID.</small></span>
+              </label>
+              <label>
                 <input type="radio" name="paymentMethod" value="bancontact" checked>
                 <span><strong>Bancontact</strong><small>Voor Belgische bankkaarten.</small></span>
               </label>
@@ -201,6 +205,10 @@
               <label>
                 <input type="radio" name="paymentMethod" value="card">
                 <span><strong>Betaalkaart</strong><small>Gebruik je kaartgegevens op de beveiligde betaalpagina.</small></span>
+              </label>
+              <label>
+                <input type="radio" name="paymentMethod" value="google_pay">
+                <span><strong>Google Pay</strong><small>Werkt wanneer Google Pay beschikbaar is in je browser.</small></span>
               </label>
             </fieldset>
 
@@ -251,7 +259,7 @@
               <span>Ik ga akkoord met de verwerking van mijn gegevens voor deze bestelling.</span>
             </label>
             <button class="button button--primary" type="submit">Ga naar betaalpagina</button>
-            <p class="form-note">Je wordt doorgestuurd naar de beveiligde Stripe-betaalpagina voor de gekozen betaalmethode.</p>
+            <p class="form-note">Apple Pay met Touch ID werkt via Safari op Mac. Zie je toch een scan-code, open de betaalpagina in Safari.</p>
             <p class="form-status" role="status" aria-live="polite" data-ticket-status></p>
           </form>
         </div>

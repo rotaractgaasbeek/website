@@ -11,8 +11,8 @@
 4. Controleer in Stripe of wallets klaarstaan:
    - **Apple Pay** werkt alleen op ondersteunde Apple-toestellen/browsers en wanneer het domein `www.rotaractgaasbeek.be` correct geregistreerd is.
    - **Google Pay** verschijnt alleen wanneer Google Pay in Stripe actief is en de bezoeker een ondersteunde browser/toestel met geschikte betaalkaart gebruikt.
-5. De website laat bezoekers eerst zelf kiezen tussen **Bancontact**, **iDEAL** en **betaalkaart**. Alleen die gekozen methode wordt daarna naar Stripe doorgestuurd.
-6. Apple Pay en Google Pay worden niet als hoofdkeuze op de website getoond. Stripe kan ze eventueel nog tonen als wallet-optie bij **betaalkaart**, maar bezoekers kunnen dan ook gewoon hun kaartgegevens invullen.
+5. De website laat bezoekers eerst zelf kiezen tussen **Apple Pay**, **Bancontact**, **iDEAL**, **betaalkaart** en **Google Pay**.
+6. Apple Pay en Google Pay worden technisch als **kaart/wallet** naar Stripe doorgestuurd. Apple Pay met Touch ID werkt het best via Safari op Mac; in andere browsers kan Apple zelf een scan-code tonen.
 
 ## 2. Eerst in testmodus instellen
 

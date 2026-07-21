@@ -8,7 +8,13 @@ const BBQ_PRICE = 10000;
 const CINEMA_ADULT_PRICE = 1600;
 const CINEMA_CHILD_PRICE = 1200;
 const CINEMA_GIFT_PRICE = 1200;
-const PAYMENT_METHODS = new Set(["bancontact", "ideal", "card"]);
+const PAYMENT_METHODS = {
+  bancontact: "bancontact",
+  ideal: "ideal",
+  card: "card",
+  apple_pay: "card",
+  google_pay: "card",
+};
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);
@@ -59,7 +65,9 @@ module.exports = async function handler(request, response) {
     return response.status(400).json({ ok: false, message: "Onbekend evenement." });
   }
 
-  if (!PAYMENT_METHODS.has(paymentMethod)) {
+  const stripePaymentMethod = PAYMENT_METHODS[paymentMethod];
+
+  if (!stripePaymentMethod) {
     return response.status(400).json({
       ok: false,
       message: "Kies een geldige betaalmethode.",
@@ -129,7 +137,7 @@ module.exports = async function handler(request, response) {
       "metadata[order_id]": reservation.orderId,
       "metadata[event]": eventType,
       "metadata[payment_method]": paymentMethod,
-      "payment_method_types[0]": paymentMethod,
+      "payment_method_types[0]": stripePaymentMethod,
       expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
       locale: "nl",
     });
