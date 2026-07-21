@@ -313,6 +313,11 @@ const ticketPrices = {
   },
 };
 
+const walletPaymentMethods = new Set(["apple_pay", "google_pay"]);
+const walletLabels = {
+  apple_pay: "Apple Pay",
+  google_pay: "Google Pay",
+};
 const paymentUserAgent = window.navigator.userAgent || "";
 const paymentVendor = window.navigator.vendor || "";
 const paymentPlatform = window.navigator.platform || "";
@@ -322,14 +327,11 @@ const isSafari =
   /Safari/.test(paymentUserAgent) &&
   /Apple/.test(paymentVendor) &&
   !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
-const hasApplePaySession =
-  typeof window.ApplePaySession !== "undefined" &&
-  typeof window.ApplePaySession.canMakePayments === "function" &&
-  window.ApplePaySession.canMakePayments();
-const canUseApplePay = isAppleDevice && isSafari && hasApplePaySession;
 const isIOS = /iPhone|iPad|iPod/.test(paymentUserAgent);
+const canUseApplePay = isAppleDevice && isSafari;
 const canUseGooglePay =
   !isIOS && /Chrome|Chromium|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
+let stripeInstancePromise;
 
 const updateWalletOption = (ticketForm, method, isAvailable, availableText, unavailableText) => {
   const input = ticketForm.querySelector(`input[name="paymentMethod"][value="${method}"]`);
@@ -351,6 +353,186 @@ const updateWalletOption = (ticketForm, method, isAvailable, availableText, unav
   }
 };
 
+const loadStripeInstance = async () => {
+  if (!stripeInstancePromise) {
+    stripeInstancePromise = (async () => {
+      if (typeof window.Stripe !== "function") {
+        throw new Error("Stripe kon niet worden geladen. Probeer de pagina opnieuw.");
+      }
+
+      const response = await fetch("/api/stripe-config");
+      const config = await response.json().catch(() => ({}));
+
+      if (!response.ok || !config.publishableKey) {
+        throw new Error("Wallet-betalingen zijn nog niet volledig geconfigureerd.");
+      }
+
+      return window.Stripe(config.publishableKey);
+    })();
+  }
+
+  return stripeInstancePromise;
+};
+
+const ensureWalletPanel = (ticketForm) => {
+  let panel = ticketForm.querySelector("[data-wallet-checkout]");
+
+  if (!panel) {
+    panel = document.createElement("div");
+    panel.className = "wallet-checkout";
+    panel.hidden = true;
+    panel.dataset.walletCheckout = "";
+    panel.innerHTML = `
+      <p class="wallet-checkout__intro" data-wallet-instructions></p>
+      <div class="wallet-checkout__element" data-wallet-element></div>
+      <p class="form-status" role="status" aria-live="polite" data-wallet-status></p>
+    `;
+
+    const submitButton = ticketForm.querySelector('button[type="submit"]');
+    submitButton?.before(panel);
+  }
+
+  return panel;
+};
+
+const resetWalletPanel = (ticketForm) => {
+  const panel = ticketForm.querySelector("[data-wallet-checkout]");
+  if (!panel) return;
+
+  const element = panel.querySelector("[data-wallet-element]");
+  const message = panel.querySelector("[data-wallet-status]");
+  const instructions = panel.querySelector("[data-wallet-instructions]");
+
+  if (element) element.innerHTML = "";
+  if (message) {
+    message.textContent = "";
+    message.className = "form-status";
+  }
+  if (instructions) instructions.textContent = "";
+  panel.hidden = true;
+};
+
+const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, status, submitButton) => {
+  const methodLabel = walletLabels[paymentMethod] || "wallet";
+
+  if (paymentMethod === "apple_pay" && !canUseApplePay) {
+    throw new Error("Apple Pay werkt hier alleen in Safari op een Apple-toestel.");
+  }
+
+  if (paymentMethod === "google_pay" && !canUseGooglePay) {
+    throw new Error("Google Pay werkt hier alleen in Chrome of Edge met Google Pay.");
+  }
+
+  const panel = ensureWalletPanel(ticketForm);
+  const element = panel.querySelector("[data-wallet-element]");
+  const walletStatus = panel.querySelector("[data-wallet-status]");
+  const instructions = panel.querySelector("[data-wallet-instructions]");
+
+  resetWalletPanel(ticketForm);
+  panel.hidden = false;
+  if (instructions) {
+    instructions.textContent = `${methodLabel} voorbereiden...`;
+  }
+
+  const response = await fetch(ticketForm.action, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      ...payload,
+      checkoutMode: "express_wallet",
+    }),
+  });
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok || !result.ok || !result.clientSecret) {
+    throw new Error(result.message || `${methodLabel} kon niet worden gestart.`);
+  }
+
+  const stripe = await loadStripeInstance();
+  const checkout = stripe.initCheckout({
+    clientSecret: result.clientSecret,
+  });
+  const expressCheckoutElement = checkout.createExpressCheckoutElement({
+    buttonHeight: 50,
+    buttonTheme: {
+      applePay: "black",
+      googlePay: "black",
+    },
+    buttonType: {
+      applePay: "check-out",
+      googlePay: "checkout",
+    },
+    layout: {
+      maxColumns: 1,
+      maxRows: 1,
+      overflow: "never",
+    },
+    paymentMethods: {
+      applePay: paymentMethod === "apple_pay" ? "always" : "never",
+      googlePay: paymentMethod === "google_pay" ? "always" : "never",
+      link: "never",
+      paypal: "never",
+      amazonPay: "never",
+    },
+  });
+
+  expressCheckoutElement.on("ready", ({ availablePaymentMethods }) => {
+    const methodKey = paymentMethod === "apple_pay" ? "applePay" : "googlePay";
+
+    if (!availablePaymentMethods?.[methodKey]) {
+      if (walletStatus) {
+        walletStatus.textContent =
+          `${methodLabel} is niet beschikbaar op deze browser of dit toestel. ` +
+          "Controleer je Wallet-instellingen of kies Bancontact, iDEAL of betaalkaart.";
+        walletStatus.className = "form-status form-status--error";
+      }
+      submitButton.disabled = false;
+      submitButton.textContent = "Opnieuw proberen";
+      return;
+    }
+
+    if (instructions) {
+      instructions.textContent = `Klik hieronder op ${methodLabel} om te betalen.`;
+    }
+    if (walletStatus) {
+      walletStatus.textContent = "";
+      walletStatus.className = "form-status";
+    }
+    submitButton.textContent = `Klik op ${methodLabel}`;
+  });
+
+  expressCheckoutElement.mount(element);
+
+  const actionsResult = await checkout.loadActions();
+  if (actionsResult.type !== "success") {
+    throw new Error(`${methodLabel} kon niet worden voorbereid.`);
+  }
+
+  expressCheckoutElement.on("confirm", async (event) => {
+    if (walletStatus) {
+      walletStatus.textContent = "Betaling bevestigen...";
+      walletStatus.className = "form-status";
+    }
+
+    const confirmation = await actionsResult.actions.confirm({
+      expressCheckoutConfirmEvent: event,
+    });
+
+    if (confirmation?.error) {
+      if (walletStatus) {
+        walletStatus.textContent =
+          confirmation.error.message || `${methodLabel} kon niet worden bevestigd.`;
+        walletStatus.className = "form-status form-status--error";
+      }
+      submitButton.disabled = false;
+      submitButton.textContent = "Opnieuw proberen";
+    }
+  });
+
+  status.textContent = "";
+  status.className = "form-status";
+};
+
 document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
   const eventType = ticketForm.dataset.ticketEvent;
   const quantities = [...ticketForm.querySelectorAll("[data-ticket-quantity]")];
@@ -370,20 +552,37 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
     }).format(total / 100);
   };
 
-  quantities.forEach((input) => input.addEventListener("input", updateTicketTotal));
+  const resetPreparedWallet = () => {
+    resetWalletPanel(ticketForm);
+    submitButton.disabled = false;
+    submitButton.textContent = "Ga naar betaalpagina";
+  };
+
+  quantities.forEach((input) => {
+    input.addEventListener("input", () => {
+      updateTicketTotal();
+      resetPreparedWallet();
+    });
+  });
+  ticketForm
+    .querySelectorAll('input[name="name"], input[name="email"], input[name="phone"]')
+    .forEach((input) => input.addEventListener("input", resetPreparedWallet));
+  ticketForm
+    .querySelectorAll('input[name="paymentMethod"]')
+    .forEach((input) => input.addEventListener("change", resetPreparedWallet));
   updateTicketTotal();
   updateWalletOption(
     ticketForm,
     "apple_pay",
     canUseApplePay,
-    "Klaar voor Apple Pay",
-    "Alleen actief in Safari met Apple Pay",
+    "Opent op deze pagina via Safari",
+    "Gebruik Safari op een Apple-toestel",
   );
   updateWalletOption(
     ticketForm,
     "google_pay",
     canUseGooglePay,
-    "Klaar voor Google Pay",
+    "Opent op deze pagina via Chrome of Edge",
     "Alleen actief in Chrome of Edge",
   );
 
@@ -413,6 +612,17 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
     status.className = "form-status";
 
     try {
+      if (walletPaymentMethods.has(payload.paymentMethod)) {
+        await startExpressWalletCheckout(
+          ticketForm,
+          payload,
+          payload.paymentMethod,
+          status,
+          submitButton,
+        );
+        return;
+      }
+
       const response = await fetch(ticketForm.action, {
         method: "POST",
         headers: { "Content-Type": "application/json" },

@@ -9,10 +9,10 @@
    - **Bancontact**
    - **iDEAL**
 4. Controleer in Stripe of wallets klaarstaan:
-   - **Apple Pay** werkt alleen op ondersteunde Apple-toestellen/browsers en wanneer het domein `www.rotaractgaasbeek.be` correct geregistreerd is.
+   - **Apple Pay** werkt alleen op ondersteunde Apple-toestellen/browsers en wanneer het domein `www.rotaractgaasbeek.be` in Stripe geregistreerd is voor wallets.
    - **Google Pay** verschijnt alleen wanneer Google Pay in Stripe actief is en de bezoeker een ondersteunde browser/toestel met geschikte betaalkaart gebruikt.
 5. De website laat bezoekers eerst zelf kiezen tussen **Apple Pay**, **Bancontact**, **iDEAL**, **betaalkaart** en **Google Pay**.
-6. Apple Pay en Google Pay worden technisch als **kaart/wallet** naar Stripe doorgestuurd. De website maakt Apple Pay alleen aanklikbaar in Safari met Apple Pay, zodat Firefox op Mac niet naar de Apple-scan-code wordt gestuurd.
+6. Apple Pay en Google Pay worden technisch als **kaart/wallet** naar Stripe doorgestuurd. De website opent daarvoor een echte Stripe Express Checkout-knop op de pagina zelf. Apple Pay is alleen aanklikbaar in Safari op een Apple-toestel, zodat Firefox op Mac niet naar de Apple-scan-code wordt gestuurd.
 
 ## 2. Eerst in testmodus instellen
 
@@ -23,10 +23,15 @@
    - Key: `STRIPE_SECRET_KEY`
    - Value: de gekopieerde `sk_test_...`-sleutel
    - Environments: Production en Preview
-5. Voeg ook toe:
+5. Kopieer in Stripe ook de `Publishable key` die begint met `pk_test_...` en voeg toe:
+   - Key: `STRIPE_PUBLISHABLE_KEY`
+   - Value: de gekopieerde `pk_test_...`-sleutel
+   - Environments: Production en Preview
+6. Voeg ook toe:
    - Key: `SITE_URL`
    - Value: `https://www.rotaractgaasbeek.be`
    - Environments: Production en Preview
+7. Registreer `www.rotaractgaasbeek.be` in Stripe bij de betaalmethode-domeinen voor Apple Pay/Google Pay, zowel in testmodus als later in livemodus.
 
 ## 3. Webhook toevoegen
 
@@ -66,7 +71,7 @@
 5. Controleer of na een geslaagde betaling de status **Betaald** wordt en beide
    e-mails aankomen.
 6. Zet daarna Stripe in livemodus.
-7. Vervang in Vercel `STRIPE_SECRET_KEY` door de live sleutel `sk_live_...`.
+7. Vervang in Vercel `STRIPE_SECRET_KEY` door de live sleutel `sk_live_...` en `STRIPE_PUBLISHABLE_KEY` door de live sleutel `pk_live_...`.
 8. Maak ook in livemodus dezelfde webhook aan en vervang
    `STRIPE_WEBHOOK_SECRET` door de live `whsec_...`-sleutel.
 9. Voer in Vercel een nieuwe deployment uit.

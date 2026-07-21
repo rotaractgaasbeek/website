@@ -190,9 +190,9 @@
 
             <fieldset class="payment-method-choice">
               <legend>Betaalmethode</legend>
-              <label data-wallet-option="apple_pay" aria-disabled="true">
-                <input type="radio" name="paymentMethod" value="apple_pay" disabled>
-                <span><strong>Apple Pay</strong><small data-wallet-status>Beschikbaar via ondersteunde Apple-browser</small></span>
+              <label data-wallet-option="apple_pay">
+                <input type="radio" name="paymentMethod" value="apple_pay">
+                <span><strong>Apple Pay</strong><small data-wallet-status>Opent op deze pagina via Safari</small></span>
               </label>
               <label>
                 <input type="radio" name="paymentMethod" value="bancontact" checked>
@@ -206,9 +206,9 @@
                 <input type="radio" name="paymentMethod" value="card">
                 <span><strong>Betaalkaart</strong></span>
               </label>
-              <label data-wallet-option="google_pay" aria-disabled="true">
-                <input type="radio" name="paymentMethod" value="google_pay" disabled>
-                <span><strong>Google Pay</strong><small data-wallet-status>Beschikbaar via ondersteunde Google-browser</small></span>
+              <label data-wallet-option="google_pay">
+                <input type="radio" name="paymentMethod" value="google_pay">
+                <span><strong>Google Pay</strong><small data-wallet-status>Opent op deze pagina via Chrome of Edge</small></span>
               </label>
             </fieldset>
 
@@ -273,6 +273,7 @@
         <div><h3>Contact</h3><div class="footer-links"><a href="mailto:rotaractgaasbeek@gmail.com">rotaractgaasbeek@gmail.com</a><span>Ondernemingsnummer BE1029.342.026</span></div></div>
       </div>
     </footer>
+    <script src="https://js.stripe.com/clover/stripe.js"></script>
     <script src="assets/js/main.js"></script>
     <script defer src="/_vercel/insights/script.js"></script>
     <script defer src="/_vercel/speed-insights/script.js"></script>
