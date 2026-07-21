@@ -1501,24 +1501,6 @@ textarea {
   display: block;
 }
 
-.wallet-checkout {
-  display: grid;
-  gap: 0.75rem;
-  margin: 0;
-  padding: 1rem;
-  border: 1px solid rgba(18, 60, 105, 0.16);
-  border-radius: var(--radius);
-  background: #F7FAFD;
-}
-
-.wallet-checkout[hidden] {
-  display: none;
-}
-
-.wallet-checkout__element {
-  min-height: 50px;
-}
-
 .consent-field {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);

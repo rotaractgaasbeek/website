@@ -12,10 +12,7 @@ const PAYMENT_METHODS = {
   bancontact: "bancontact",
   ideal: "ideal",
   card: "card",
-  apple_pay: "card",
-  google_pay: "card",
 };
-const EXPRESS_WALLETS = new Set(["apple_pay", "google_pay"]);
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);
@@ -54,7 +51,6 @@ module.exports = async function handler(request, response) {
   const email = clean(body.email);
   const phone = clean(body.phone, 80);
   const paymentMethod = clean(body.paymentMethod, 30) || "bancontact";
-  const checkoutMode = clean(body.checkoutMode, 30);
 
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return response.status(400).json({
@@ -128,8 +124,6 @@ module.exports = async function handler(request, response) {
       phone,
     });
 
-    const useExpressWallet =
-      checkoutMode === "express_wallet" && EXPRESS_WALLETS.has(paymentMethod);
     const checkoutParams = {
       mode: "payment",
       customer_email: email,
@@ -140,19 +134,11 @@ module.exports = async function handler(request, response) {
       "payment_method_types[0]": stripePaymentMethod,
       expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
       locale: "nl",
-    };
-
-    if (useExpressWallet) {
-      checkoutParams.ui_mode = "elements";
-      checkoutParams.return_url =
-        `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`;
-    } else {
-      checkoutParams.success_url =
-        `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`;
-      checkoutParams.cancel_url = eventType === "cinema"
+      success_url: `${SITE_URL}/ticket-bedankt.html?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: eventType === "cinema"
         ? `${SITE_URL}/openluchtcinema.html?betaling=geannuleerd#tickets`
-        : `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`;
-    }
+        : `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`,
+    };
 
     const params = new URLSearchParams(checkoutParams);
 
@@ -188,7 +174,7 @@ module.exports = async function handler(request, response) {
     });
     const checkout = await stripeResponse.json().catch(() => ({}));
 
-    if (!stripeResponse.ok || (!checkout.url && !checkout.client_secret)) {
+    if (!stripeResponse.ok || !checkout.url) {
       throw new Error(checkout.error?.message || "Stripe Checkout kon niet worden gestart.");
     }
 
@@ -197,14 +183,6 @@ module.exports = async function handler(request, response) {
       orderId: reservation.orderId,
       stripeSessionId: checkout.id,
     });
-
-    if (useExpressWallet) {
-      return response.status(200).json({
-        ok: true,
-        clientSecret: checkout.client_secret,
-        sessionId: checkout.id,
-      });
-    }
 
     return response.status(200).json({ ok: true, url: checkout.url });
   } catch (error) {

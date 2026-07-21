@@ -313,342 +313,6 @@ const ticketPrices = {
   },
 };
 
-const walletPaymentMethods = new Set(["apple_pay", "google_pay"]);
-const walletLabels = {
-  apple_pay: "Apple Pay",
-  google_pay: "Google Pay",
-};
-const paymentUserAgent = window.navigator.userAgent || "";
-const paymentVendor = window.navigator.vendor || "";
-const paymentPlatform = window.navigator.platform || "";
-const isAppleDevice =
-  /iPhone|iPad|iPod|Mac/.test(paymentUserAgent) || /Mac|iPhone|iPad|iPod/.test(paymentPlatform);
-const isSafari =
-  /Safari/.test(paymentUserAgent) &&
-  /Apple/.test(paymentVendor) &&
-  !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR|SamsungBrowser/.test(paymentUserAgent);
-const isChromiumBrowser = /Chrome|Chromium|Edg|OPR/.test(paymentUserAgent);
-const isFirefox = /Firefox|FxiOS/.test(paymentUserAgent);
-const isIOS = /iPhone|iPad|iPod/.test(paymentUserAgent);
-const canUseApplePay =
-  isAppleDevice &&
-  isSafari &&
-  typeof window.ApplePaySession !== "undefined" &&
-  (typeof window.ApplePaySession.canMakePayments !== "function" ||
-    window.ApplePaySession.canMakePayments());
-const canUseGooglePay = !isIOS && (isChromiumBrowser || isFirefox || isSafari);
-let stripeInstancePromise;
-const WALLET_SETUP_TIMEOUT_MS = 25000;
-
-const withTimeout = (promise, message, timeoutMs = WALLET_SETUP_TIMEOUT_MS) =>
-  new Promise((resolve, reject) => {
-    const timer = window.setTimeout(() => reject(new Error(message)), timeoutMs);
-
-    Promise.resolve(promise).then(
-      (value) => {
-        window.clearTimeout(timer);
-        resolve(value);
-      },
-      (error) => {
-        window.clearTimeout(timer);
-        reject(error);
-      },
-    );
-  });
-
-const fetchJsonWithTimeout = async (url, options, message, timeoutMs = WALLET_SETUP_TIMEOUT_MS) => {
-  const controller = new AbortController();
-  const timer = window.setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    const response = await fetch(url, {
-      ...options,
-      signal: controller.signal,
-    });
-    const data = await response.json().catch(() => ({}));
-    return { response, data };
-  } catch (error) {
-    if (error.name === "AbortError") {
-      throw new Error(message);
-    }
-
-    throw error;
-  } finally {
-    window.clearTimeout(timer);
-  }
-};
-
-const updateWalletOption = (ticketForm, method, isAvailable) => {
-  const input = ticketForm.querySelector(`input[name="paymentMethod"][value="${method}"]`);
-  const label = input?.closest("label");
-
-  if (!input || !label) return;
-
-  input.disabled = !isAvailable;
-  label.setAttribute("aria-disabled", String(!isAvailable));
-
-  if (!isAvailable && input.checked) {
-    const fallback = ticketForm.querySelector('input[name="paymentMethod"][value="bancontact"]');
-    if (fallback) fallback.checked = true;
-  }
-};
-
-const loadStripeInstance = async () => {
-  if (!stripeInstancePromise) {
-    stripeInstancePromise = (async () => {
-      if (typeof window.Stripe !== "function") {
-        throw new Error("Stripe kon niet worden geladen. Probeer de pagina opnieuw.");
-      }
-
-      const { response, data: config } = await fetchJsonWithTimeout(
-        "/api/stripe-config",
-        {},
-        "Stripe-configuratie kon niet worden opgehaald. Probeer opnieuw of kies een andere betaalmethode.",
-        12000,
-      );
-
-      if (!response.ok || !config.publishableKey) {
-        throw new Error(
-          config.message ||
-            "STRIPE_PUBLISHABLE_KEY ontbreekt in Vercel. Voeg de publieke Stripe-sleutel toe en redeploy.",
-        );
-      }
-
-      return window.Stripe(config.publishableKey);
-    })();
-  }
-
-  return stripeInstancePromise;
-};
-
-const initializeStripeCheckout = async (stripe, clientSecret) => {
-  const initCheckout = stripe.initCheckoutElementsSdk || stripe.initCheckout;
-
-  if (typeof initCheckout !== "function") {
-    throw new Error("Stripe Checkout kon niet worden geladen. Probeer de pagina opnieuw.");
-  }
-
-  return Promise.resolve(initCheckout.call(stripe, { clientSecret }));
-};
-
-const registerStripeElementEvent = (element, eventName, handler) => {
-  try {
-    element.on(eventName, handler);
-  } catch (error) {
-    // Older Stripe.js builds do not know every event name.
-  }
-};
-
-const walletMethodIsAvailable = (methods, paymentMethod) => {
-  if (!methods) return false;
-
-  const methodKey = paymentMethod === "apple_pay" ? "applePay" : "googlePay";
-
-  if (Array.isArray(methods)) {
-    return methods.includes(methodKey) || methods.includes(paymentMethod);
-  }
-
-  if (typeof methods === "object") {
-    return Boolean(methods[methodKey] || methods[paymentMethod]);
-  }
-
-  return Boolean(methods);
-};
-
-const ensureWalletPanel = (ticketForm) => {
-  let panel = ticketForm.querySelector("[data-wallet-checkout]");
-
-  if (!panel) {
-    panel = document.createElement("div");
-    panel.className = "wallet-checkout";
-    panel.hidden = true;
-    panel.dataset.walletCheckout = "";
-    panel.innerHTML = `
-      <div class="wallet-checkout__element" data-wallet-element></div>
-      <p class="form-status" role="status" aria-live="polite" data-wallet-status></p>
-    `;
-
-    const submitButton = ticketForm.querySelector('button[type="submit"]');
-    submitButton?.before(panel);
-  }
-
-  return panel;
-};
-
-const resetWalletPanel = (ticketForm) => {
-  const panel = ticketForm.querySelector("[data-wallet-checkout]");
-  if (!panel) return;
-
-  const element = panel.querySelector("[data-wallet-element]");
-  const message = panel.querySelector("[data-wallet-status]");
-
-  if (element) element.innerHTML = "";
-  if (message) {
-    message.textContent = "";
-    message.className = "form-status";
-  }
-  panel.hidden = true;
-};
-
-const startExpressWalletCheckout = async (ticketForm, payload, paymentMethod, status, submitButton) => {
-  const methodLabel = walletLabels[paymentMethod] || "wallet";
-
-  if (paymentMethod === "apple_pay" && !canUseApplePay) {
-    throw new Error("Apple Pay werkt hier alleen in Safari met Apple Pay/Touch ID actief.");
-  }
-
-  if (paymentMethod === "google_pay" && !canUseGooglePay) {
-    throw new Error("Google Pay werkt hier alleen in een ondersteunde browser met Google Pay.");
-  }
-
-  const panel = ensureWalletPanel(ticketForm);
-  const element = panel.querySelector("[data-wallet-element]");
-  const walletStatus = panel.querySelector("[data-wallet-status]");
-
-  resetWalletPanel(ticketForm);
-  panel.hidden = false;
-  element.style.visibility = "hidden";
-  submitButton.textContent = `${methodLabel} voorbereiden...`;
-
-  const { response, data: result } = await fetchJsonWithTimeout(
-    ticketForm.action,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...payload,
-        checkoutMode: "express_wallet",
-      }),
-    },
-    `${methodLabel} voorbereiden duurt te lang. Kies Bancontact, iDEAL of betaalkaart, of probeer opnieuw.`,
-  );
-
-  if (!response.ok || !result.ok || !result.clientSecret) {
-    throw new Error(result.message || `${methodLabel} kon niet worden gestart.`);
-  }
-
-  const stripe = await loadStripeInstance();
-  const checkout = await withTimeout(
-    initializeStripeCheckout(stripe, result.clientSecret),
-    `${methodLabel} kon niet worden gestart. Kies Bancontact, iDEAL of betaalkaart, of probeer opnieuw.`,
-  );
-  const expressCheckoutElement = checkout.createExpressCheckoutElement({
-    buttonHeight: 50,
-    buttonTheme: {
-      applePay: "black",
-      googlePay: "black",
-    },
-    buttonType: {
-      applePay: "check-out",
-      googlePay: "checkout",
-    },
-    layout: {
-      maxColumns: 1,
-      maxRows: 1,
-      overflow: "never",
-    },
-    paymentMethods: {
-      applePay: paymentMethod === "apple_pay" ? "always" : "never",
-      googlePay: paymentMethod === "google_pay" ? "always" : "never",
-      link: "never",
-      paypal: "never",
-      amazonPay: "never",
-    },
-  });
-
-  const readyPromise = new Promise((resolve) => {
-    let isResolved = false;
-    const resolveAvailability = (isAvailable) => {
-      if (isResolved) return;
-      isResolved = true;
-
-      if (!isAvailable) {
-        if (walletStatus) {
-          walletStatus.textContent =
-            `${methodLabel} is niet beschikbaar op deze browser of dit toestel. ` +
-            "Controleer je Wallet-instellingen of kies Bancontact, iDEAL of betaalkaart.";
-          walletStatus.className = "form-status form-status--error";
-        }
-        submitButton.disabled = false;
-        submitButton.textContent = "Opnieuw proberen";
-        resolve(false);
-        return;
-      }
-
-      if (walletStatus) {
-        walletStatus.textContent = "";
-        walletStatus.className = "form-status";
-      }
-      resolve(true);
-    };
-
-    const handleAvailability = (event = {}) => {
-      const methods = event.availablePaymentMethods || event.paymentMethods;
-      resolveAvailability(walletMethodIsAvailable(methods, paymentMethod));
-    };
-
-    registerStripeElementEvent(expressCheckoutElement, "ready", handleAvailability);
-    registerStripeElementEvent(
-      expressCheckoutElement,
-      "availablepaymentmethodschange",
-      handleAvailability,
-    );
-    registerStripeElementEvent(expressCheckoutElement, "loaderror", (event = {}) => {
-      resolveAvailability(false);
-      if (walletStatus && event.error?.message) {
-        walletStatus.textContent = event.error.message;
-      }
-    });
-  });
-
-  expressCheckoutElement.mount(element);
-
-  const walletIsAvailable = await withTimeout(
-    readyPromise,
-    `${methodLabel} kon niet worden geladen. Kies Bancontact, iDEAL of betaalkaart, of probeer opnieuw.`,
-  );
-
-  if (!walletIsAvailable) {
-    return;
-  }
-
-  const actionsResult = await withTimeout(
-    checkout.loadActions(),
-    `${methodLabel} kon niet worden voorbereid. Kies Bancontact, iDEAL of betaalkaart, of probeer opnieuw.`,
-  );
-
-  if (actionsResult.type !== "success") {
-    throw new Error(`${methodLabel} kon niet worden voorbereid.`);
-  }
-
-  expressCheckoutElement.on("confirm", async (event) => {
-    if (walletStatus) {
-      walletStatus.textContent = "Betaling bevestigen...";
-      walletStatus.className = "form-status";
-    }
-
-    const confirmation = await actionsResult.actions.confirm({
-      expressCheckoutConfirmEvent: event,
-    });
-
-    if (confirmation?.error) {
-      if (walletStatus) {
-        walletStatus.textContent =
-          confirmation.error.message || `${methodLabel} kon niet worden bevestigd.`;
-        walletStatus.className = "form-status form-status--error";
-      }
-      submitButton.disabled = false;
-      submitButton.textContent = "Opnieuw proberen";
-    }
-  });
-
-  element.style.visibility = "visible";
-  submitButton.textContent = `Klik op ${methodLabel}`;
-
-  status.textContent = "";
-  status.className = "form-status";
-};
-
 document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
   const eventType = ticketForm.dataset.ticketEvent;
   const quantities = [...ticketForm.querySelectorAll("[data-ticket-quantity]")];
@@ -668,8 +332,7 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
     }).format(total / 100);
   };
 
-  const resetPreparedWallet = () => {
-    resetWalletPanel(ticketForm);
+  const resetSubmitButton = () => {
     submitButton.disabled = false;
     submitButton.textContent = "Ga naar betaalpagina";
   };
@@ -677,26 +340,16 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
   quantities.forEach((input) => {
     input.addEventListener("input", () => {
       updateTicketTotal();
-      resetPreparedWallet();
+      resetSubmitButton();
     });
   });
   ticketForm
     .querySelectorAll('input[name="name"], input[name="email"], input[name="phone"]')
-    .forEach((input) => input.addEventListener("input", resetPreparedWallet));
+    .forEach((input) => input.addEventListener("input", resetSubmitButton));
   ticketForm
     .querySelectorAll('input[name="paymentMethod"]')
-    .forEach((input) => input.addEventListener("change", resetPreparedWallet));
+    .forEach((input) => input.addEventListener("change", resetSubmitButton));
   updateTicketTotal();
-  updateWalletOption(
-    ticketForm,
-    "apple_pay",
-    canUseApplePay,
-  );
-  updateWalletOption(
-    ticketForm,
-    "google_pay",
-    canUseGooglePay,
-  );
 
   ticketForm.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -724,17 +377,6 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
     status.className = "form-status";
 
     try {
-      if (walletPaymentMethods.has(payload.paymentMethod)) {
-        await startExpressWalletCheckout(
-          ticketForm,
-          payload,
-          payload.paymentMethod,
-          status,
-          submitButton,
-        );
-        return;
-      }
-
       const response = await fetch(ticketForm.action, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -748,7 +390,6 @@ document.querySelectorAll("[data-ticket-form]").forEach((ticketForm) => {
 
       window.location.href = result.url;
     } catch (error) {
-      resetWalletPanel(ticketForm);
       status.textContent =
         error.message || "De betaling kon niet worden gestart. Probeer later opnieuw.";
       status.classList.add("form-status--error");
