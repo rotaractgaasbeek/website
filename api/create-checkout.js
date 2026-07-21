@@ -8,6 +8,7 @@ const BBQ_PRICE = 10000;
 const CINEMA_ADULT_PRICE = 1600;
 const CINEMA_CHILD_PRICE = 1200;
 const CINEMA_GIFT_PRICE = 1200;
+const PAYMENT_METHODS = new Set(["bancontact", "ideal", "card"]);
 
 const clean = (value, maxLength = 180) =>
   String(value || "").trim().slice(0, maxLength);
@@ -45,6 +46,7 @@ module.exports = async function handler(request, response) {
   const name = clean(body.name);
   const email = clean(body.email);
   const phone = clean(body.phone, 80);
+  const paymentMethod = clean(body.paymentMethod, 30) || "bancontact";
 
   if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return response.status(400).json({
@@ -55,6 +57,13 @@ module.exports = async function handler(request, response) {
 
   if (eventType !== "bbq" && eventType !== "cinema") {
     return response.status(400).json({ ok: false, message: "Onbekend evenement." });
+  }
+
+  if (!PAYMENT_METHODS.has(paymentMethod)) {
+    return response.status(400).json({
+      ok: false,
+      message: "Kies een geldige betaalmethode.",
+    });
   }
 
   const order = eventType === "cinema"
@@ -119,9 +128,8 @@ module.exports = async function handler(request, response) {
       client_reference_id: reservation.orderId,
       "metadata[order_id]": reservation.orderId,
       "metadata[event]": eventType,
-      "payment_method_types[0]": "card",
-      "payment_method_types[1]": "bancontact",
-      "payment_method_types[2]": "ideal",
+      "metadata[payment_method]": paymentMethod,
+      "payment_method_types[0]": paymentMethod,
       expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
       locale: "nl",
     });

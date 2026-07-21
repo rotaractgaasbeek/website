@@ -1450,6 +1450,58 @@ textarea {
   font-size: 0.9rem;
 }
 
+.payment-method-choice {
+  display: grid;
+  gap: 0.65rem;
+  margin: 0;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #FAFBFC;
+}
+
+.payment-method-choice legend {
+  padding: 0 0.35rem;
+  color: var(--ink);
+  font-weight: 850;
+}
+
+.payment-method-choice label {
+  display: grid;
+  grid-template-columns: 22px minmax(0, 1fr);
+  gap: 0.65rem;
+  align-items: start;
+  padding: 0.8rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  cursor: pointer;
+}
+
+.payment-method-choice label:has(input:checked) {
+  border-color: rgba(212, 19, 103, 0.42);
+  box-shadow: 0 0 0 3px rgba(212, 19, 103, 0.1);
+}
+
+.payment-method-choice input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0.2rem 0 0;
+  accent-color: var(--cranberry);
+}
+
+.payment-method-choice strong,
+.payment-method-choice small {
+  display: block;
+}
+
+.payment-method-choice small {
+  margin-top: 0.15rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.35;
+}
+
 .consent-field {
   display: grid;
   grid-template-columns: 22px minmax(0, 1fr);

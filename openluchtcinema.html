@@ -188,6 +188,22 @@
               <input id="cinema-phone" name="phone" type="tel" autocomplete="tel">
             </div>
 
+            <fieldset class="payment-method-choice">
+              <legend>Betaalmethode</legend>
+              <label>
+                <input type="radio" name="paymentMethod" value="bancontact" checked>
+                <span><strong>Bancontact</strong><small>Voor Belgische bankkaarten.</small></span>
+              </label>
+              <label>
+                <input type="radio" name="paymentMethod" value="ideal">
+                <span><strong>iDEAL</strong><small>Handig voor Nederlandse banken.</small></span>
+              </label>
+              <label>
+                <input type="radio" name="paymentMethod" value="card">
+                <span><strong>Betaalkaart</strong><small>Gebruik je kaartgegevens op de beveiligde betaalpagina.</small></span>
+              </label>
+            </fieldset>
+
             <fieldset class="cinema-ticket-group">
               <legend><span>Film 1</span>Ratatouille</legend>
               <p class="cinema-ticket-time">Deuren 18u30 · start film 19u00</p>
@@ -234,8 +250,8 @@
               <input type="checkbox" required>
               <span>Ik ga akkoord met de verwerking van mijn gegevens voor deze bestelling.</span>
             </label>
-            <button class="button button--primary" type="submit">Kies betaalmethode en betaal</button>
-            <p class="form-note">Je wordt doorgestuurd naar de beveiligde Stripe-betaalpagina. Daar kies je uit kaart, Bancontact, iDEAL en, wanneer beschikbaar op je toestel, Apple Pay of Google Pay.</p>
+            <button class="button button--primary" type="submit">Ga naar betaalpagina</button>
+            <p class="form-note">Je wordt doorgestuurd naar de beveiligde Stripe-betaalpagina voor de gekozen betaalmethode.</p>
             <p class="form-status" role="status" aria-live="polite" data-ticket-status></p>
           </form>
         </div>
