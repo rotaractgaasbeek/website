@@ -119,6 +119,9 @@ module.exports = async function handler(request, response) {
       client_reference_id: reservation.orderId,
       "metadata[order_id]": reservation.orderId,
       "metadata[event]": eventType,
+      "payment_method_types[0]": "card",
+      "payment_method_types[1]": "bancontact",
+      "payment_method_types[2]": "ideal",
       expires_at: String(Math.floor(Date.now() / 1000) + 31 * 60),
       locale: "nl",
     });

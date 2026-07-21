@@ -8,8 +8,10 @@
    - **Cards**
    - **Bancontact**
    - **iDEAL**
-   - wallets zoals **Apple Pay** en **Google Pay**, als Stripe die voor het account en domein aanbiedt.
-4. Controleer in Stripe of het domein `www.rotaractgaasbeek.be` klaarstaat voor wallets. Apple Pay en Google Pay verschijnen alleen wanneer Stripe, de browser en het toestel die betaalmethode ondersteunen.
+4. Controleer in Stripe of wallets klaarstaan:
+   - **Apple Pay** werkt alleen op ondersteunde Apple-toestellen/browsers en wanneer het domein `www.rotaractgaasbeek.be` correct geregistreerd is.
+   - **Google Pay** verschijnt alleen wanneer Google Pay in Stripe actief is en de bezoeker een ondersteunde browser/toestel met geschikte betaalkaart gebruikt.
+5. De website vraagt bij Stripe expliciet **kaart**, **Bancontact** en **iDEAL** aan. Apple Pay en Google Pay worden door Stripe als wallet-optie bovenop kaartbetalingen getoond wanneer ze beschikbaar zijn.
 
 ## 2. Eerst in testmodus instellen
 
