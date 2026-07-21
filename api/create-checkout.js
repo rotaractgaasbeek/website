@@ -12,8 +12,6 @@ const PAYMENT_METHODS = {
   bancontact: "bancontact",
   ideal: "ideal",
   card: "card",
-  apple_pay: "card",
-  google_pay: "card",
 };
 
 const clean = (value, maxLength = 180) =>
