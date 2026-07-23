@@ -689,6 +689,243 @@ textarea {
   max-width: 780px;
 }
 
+.page-hero--rally .page-hero__image {
+  opacity: 0.48;
+}
+
+.page-hero--rally::after {
+  background: linear-gradient(90deg, rgba(24, 33, 44, 0.9), rgba(24, 33, 44, 0.54));
+}
+
+.page-hero--rally .page-hero__content {
+  min-height: clamp(300px, 38svh, 430px);
+  padding: 3.25rem 0;
+}
+
+.page-hero--rally .page-title {
+  font-size: clamp(2.6rem, 7vw, 5.4rem);
+}
+
+.rally-hero-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin: 1.25rem 0 0;
+}
+
+.rally-hero-meta span {
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-radius: var(--radius);
+  color: rgba(255, 255, 255, 0.86);
+  background: rgba(255, 255, 255, 0.1);
+  font-size: 0.9rem;
+  font-weight: 750;
+}
+
+.sponsor-strip {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.75fr) minmax(0, 1.25fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
+}
+
+.sponsor-strip__text h2 {
+  margin: 0;
+  line-height: 1.08;
+  font-size: clamp(1.65rem, 3.5vw, 3rem);
+}
+
+.sponsor-strip__text p:last-child {
+  margin: 0.75rem 0 0;
+  color: var(--muted);
+}
+
+.sponsor-logos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.sponsor-logo {
+  display: grid;
+  gap: 0.75rem;
+  place-items: center;
+  min-height: 172px;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #FAFBFC;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.sponsor-logo:hover {
+  transform: translateY(-2px);
+  border-color: rgba(212, 19, 103, 0.28);
+  box-shadow: 0 14px 36px rgba(24, 33, 44, 0.08);
+}
+
+.sponsor-logo img {
+  width: 100%;
+  max-width: 260px;
+  max-height: 96px;
+  object-fit: contain;
+}
+
+.sponsor-logo span {
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 800;
+}
+
+.sponsor-logo--dark {
+  border-color: #252525;
+  background: #171614;
+}
+
+.sponsor-logo--dark span {
+  color: rgba(255, 255, 255, 0.74);
+}
+
+.sponsor-logo--dark img {
+  max-height: 116px;
+}
+
+.rally-choice {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.rally-choice__cards,
+.rally-info-grid,
+.rally-ticket-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: start;
+}
+
+.rally-choice-card {
+  display: grid;
+  gap: 1rem;
+  align-content: start;
+  min-height: 100%;
+  padding: clamp(1.15rem, 3vw, 1.6rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: 0 12px 35px rgba(24, 33, 44, 0.06);
+}
+
+.rally-choice-card h3 {
+  margin: 0;
+  font-size: clamp(1.35rem, 2.5vw, 2rem);
+  line-height: 1.08;
+}
+
+.rally-choice-card p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.rally-choice-card__tag {
+  justify-self: start;
+  padding: 0.35rem 0.55rem;
+  border-radius: var(--radius);
+  color: var(--cranberry-dark);
+  background: var(--cranberry-soft);
+  font-size: 0.76rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.rally-choice-card dl {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+}
+
+.rally-choice-card dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.rally-choice-card dt {
+  color: var(--muted);
+  font-weight: 750;
+}
+
+.rally-choice-card dd {
+  margin: 0;
+  font-weight: 900;
+  text-align: right;
+}
+
+.rally-choice-card .button {
+  align-self: end;
+  justify-self: start;
+}
+
+.rally-info-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
+}
+
+.rally-cause--quiet {
+  align-items: center;
+  padding-top: 2rem;
+  border-top: 1px solid var(--line);
+}
+
+.rally-cause--quiet .rally-cause__body p {
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.rally-cause--quiet .rally-cause__commitment {
+  border-color: var(--line);
+}
+
+.rally-cause--quiet .rally-cause__commitment strong {
+  color: var(--ink);
+}
+
+.rally-cause--quiet .rally-cause__commitment span {
+  color: var(--muted);
+}
+
+.rally-ticket-grid {
+  grid-template-columns: minmax(0, 1.15fr) minmax(320px, 0.85fr);
+}
+
+.rally-forms-head {
+  margin-bottom: 1.25rem;
+}
+
+.rally-application-panel,
+.rally-bbq-panel {
+  box-shadow: 0 12px 35px rgba(24, 33, 44, 0.06);
+}
+
+.rally-bbq-panel {
+  border-top-color: var(--blue);
+}
+
+.rally-bbq-panel .ticket-highlights {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.rally-bbq-panel .ticket-highlights li {
+  border-right: 1px solid var(--line);
+}
+
+.rally-bbq-panel .ticket-highlights li:last-child {
+  border-right: 0;
+}
+
 .event-list {
   display: grid;
   gap: 1rem;
@@ -796,6 +1033,22 @@ textarea {
 .event-card p {
   margin: 0.75rem 0 0;
   color: var(--muted);
+}
+
+.event-card__powered {
+  justify-self: start;
+  margin-top: 0.85rem;
+  padding: 0.45rem 0.65rem;
+  border: 1px solid rgba(212, 19, 103, 0.18);
+  border-radius: var(--radius);
+  color: var(--ink);
+  background: #FFF7FB;
+  font-size: 0.88rem;
+  font-weight: 760;
+}
+
+.event-card__powered strong {
+  color: var(--cranberry-dark);
 }
 
 .event-card__action {
@@ -1834,6 +2087,10 @@ textarea {
   .section-head--split,
   .story-grid,
   .rally-cause,
+  .sponsor-strip,
+  .rally-choice__cards,
+  .rally-info-grid,
+  .rally-ticket-grid,
   .club-info__layout,
   .calendar-grid,
   .contact-layout,
@@ -1938,7 +2195,8 @@ textarea {
 
   .hero__actions,
   .highlight-band,
-  .form-ticket-cta {
+  .form-ticket-cta,
+  .sponsor-logos {
     display: grid;
     grid-template-columns: 1fr;
   }
@@ -1990,5 +2248,9 @@ textarea {
 
   .ticket-highlights li:last-child {
     border-bottom: 0;
+  }
+
+  .rally-bbq-panel .ticket-highlights li {
+    border-right: 0;
   }
 }
