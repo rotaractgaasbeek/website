@@ -12,6 +12,11 @@ const readRawBody = async (request) => {
   return Buffer.concat(chunks);
 };
 
+const wait = (milliseconds) =>
+  new Promise((resolve) => {
+    setTimeout(resolve, milliseconds);
+  });
+
 const verifyStripeSignature = (rawBody, signatureHeader, secret) => {
   const parts = String(signatureHeader || "").split(",");
   const timestamp = parts.find((part) => part.startsWith("t="))?.slice(2);
@@ -40,6 +45,32 @@ const verifyStripeSignature = (rawBody, signatureHeader, secret) => {
   });
 };
 
+const syncAppsScript = async ({ appsScript, payload, context }) => {
+  let lastError;
+
+  for (let attempt = 1; attempt <= 2; attempt += 1) {
+    try {
+      return await appsScript(payload, { timeoutMs: 7000 });
+    } catch (error) {
+      lastError = error;
+      console.error("Stripe webhook Google sync attempt failed", {
+        action: payload.action,
+        attempt,
+        eventType: context.eventType,
+        orderId: context.orderId,
+        message: error.message,
+        status: error.status,
+      });
+
+      if (attempt < 2) {
+        await wait(600);
+      }
+    }
+  }
+
+  throw lastError;
+};
+
 async function handler(request, response) {
   if (request.method !== "POST") {
     return response.status(405).send("Method not allowed");
@@ -61,46 +92,69 @@ async function handler(request, response) {
     return response.status(400).send("Invalid signature");
   }
 
-  const event = JSON.parse(rawBody.toString("utf8"));
+  let event;
+
+  try {
+    event = JSON.parse(rawBody.toString("utf8"));
+  } catch {
+    return response.status(400).send("Invalid payload");
+  }
+
   const session = event.data?.object || {};
   const orderId = session.metadata?.order_id || session.client_reference_id;
   const appsScript = session.metadata?.event === "cinema"
     ? callCinemaGoogleAppsScript
     : callGoogleAppsScript;
+  const isPaymentCompleted =
+    event.type === "checkout.session.async_payment_succeeded" ||
+    (event.type === "checkout.session.completed" &&
+      session.payment_status === "paid");
+  const isPaymentFailed =
+    event.type === "checkout.session.expired" ||
+    event.type === "checkout.session.async_payment_failed";
 
   try {
-    if (
-      orderId &&
-      (event.type === "checkout.session.async_payment_succeeded" ||
-        (event.type === "checkout.session.completed" &&
-          session.payment_status === "paid"))
-    ) {
-      await appsScript({
-        action: "payment_completed",
-        orderId,
-        stripeSessionId: session.id,
-        paymentIntentId: session.payment_intent || "",
-        amountTotal: session.amount_total || 0,
-        customerEmail: session.customer_details?.email || session.customer_email || "",
+    if (orderId && isPaymentCompleted) {
+      await syncAppsScript({
+        appsScript,
+        payload: {
+          action: "payment_completed",
+          orderId,
+          stripeSessionId: session.id,
+          paymentIntentId: session.payment_intent || "",
+          amountTotal: session.amount_total || 0,
+          customerEmail: session.customer_details?.email || session.customer_email || "",
+        },
+        context: { eventType: event.type, orderId },
       });
     }
 
-    if (
-      orderId &&
-      (event.type === "checkout.session.expired" ||
-        event.type === "checkout.session.async_payment_failed")
-    ) {
-      await appsScript({
-        action: "payment_failed",
-        orderId,
-        stripeSessionId: session.id,
+    if (orderId && isPaymentFailed) {
+      await syncAppsScript({
+        appsScript,
+        payload: {
+          action: "payment_failed",
+          orderId,
+          stripeSessionId: session.id,
+        },
+        context: { eventType: event.type, orderId },
       });
     }
 
     return response.status(200).json({ received: true });
   } catch (error) {
-    console.error("Stripe webhook failed", error);
-    return response.status(500).json({ received: false });
+    console.error("Stripe webhook failed", {
+      eventType: event.type,
+      orderId,
+      message: error.message,
+      status: error.status,
+    });
+
+    if (isPaymentFailed) {
+      return response.status(200).json({ received: true, synced: false });
+    }
+
+    return response.status(500).json({ received: false, synced: false });
   }
 }
 
