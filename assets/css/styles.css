@@ -801,16 +801,6 @@ textarea {
   max-height: 116px;
 }
 
-.sponsor-logo--static {
-  cursor: default;
-}
-
-.sponsor-logo--static:hover {
-  transform: none;
-  border-color: #252525;
-  box-shadow: none;
-}
-
 .sponsor-logo--martens img {
   max-width: 300px;
   max-height: 108px;
