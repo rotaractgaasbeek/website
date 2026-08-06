@@ -743,7 +743,7 @@ textarea {
 
 .sponsor-logos {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.9rem;
 }
 
@@ -799,6 +799,21 @@ textarea {
 
 .sponsor-logo--dark img {
   max-height: 116px;
+}
+
+.sponsor-logo--static {
+  cursor: default;
+}
+
+.sponsor-logo--static:hover {
+  transform: none;
+  border-color: #252525;
+  box-shadow: none;
+}
+
+.sponsor-logo--martens img {
+  max-width: 300px;
+  max-height: 108px;
 }
 
 .rally-choice {
