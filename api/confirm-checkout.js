@@ -18,6 +18,9 @@ const sessionPaymentIntentId = (session) => {
   return session.payment_intent?.id || "";
 };
 
+const isPaidSession = (session) =>
+  session.payment_status === "paid" || session.payment_intent?.status === "succeeded";
+
 const cinemaOrderPayloadFromSession = (session) => {
   const metadata = session.metadata || {};
 
@@ -44,8 +47,11 @@ const cinemaOrderPayloadFromSession = (session) => {
 };
 
 const fetchStripeSession = async (sessionId) => {
+  const params = new URLSearchParams({
+    "expand[]": "payment_intent",
+  });
   const response = await fetch(
-    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}`,
+    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}?${params}`,
     {
       method: "GET",
       headers: {
@@ -118,12 +124,13 @@ module.exports = async function handler(request, response) {
       return response.status(400).json({ ok: false, message: "Onbekende bestelling." });
     }
 
-    if (session.payment_status !== "paid") {
+    if (!isPaidSession(session)) {
       return response.status(202).json({
         ok: true,
         synced: false,
         pending: true,
         paymentStatus: session.payment_status || "",
+        paymentIntentStatus: session.payment_intent?.status || "",
       });
     }
 

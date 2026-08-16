@@ -48,6 +48,8 @@
         if (!status || !sessionId) return;
 
         let attempts = 0;
+        const maxPendingAttempts = 90;
+        const maxErrorAttempts = 12;
 
         const confirmPayment = async () => {
           attempts += 1;
@@ -61,7 +63,7 @@
             const result = await response.json().catch(() => ({}));
 
             if (response.status === 202 || result.pending) {
-              if (attempts < 8) {
+              if (attempts < maxPendingAttempts) {
                 status.textContent = "Je betaling wordt nog bevestigd. We controleren opnieuw...";
                 setTimeout(confirmPayment, 4000);
                 return;
@@ -78,8 +80,9 @@
             status.textContent = "Je betaling is bevestigd. Je ontvangt zo meteen je bevestigingsmail.";
             status.classList.remove("form-status--error");
           } catch (error) {
-            if (attempts < 4) {
-              setTimeout(confirmPayment, 3000);
+            if (attempts < maxErrorAttempts) {
+              status.textContent = "We proberen je bevestiging opnieuw te verwerken...";
+              setTimeout(confirmPayment, 5000);
               return;
             }
 
