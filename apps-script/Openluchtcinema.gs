@@ -152,6 +152,7 @@ function completeCinemaPayment(data, spreadsheetId) {
   const orderId = cleanValue(data.orderId, 80);
   const stripeSessionId = cleanValue(data.stripeSessionId, 180);
   const paymentIntentId = cleanValue(data.paymentIntentId, 180);
+  const forceResend = data.forceResend === true || data.forceResend === "true";
 
   if (isBlockedCinemaOrder(data)) {
     return jsonResponse({ ok: true, orderId: orderId, blocked: true });
@@ -180,7 +181,7 @@ function completeCinemaPayment(data, spreadsheetId) {
       return jsonResponse({ ok: true, orderId: orderId, blocked: true });
     }
 
-    if (sheet.getRange(row, 13).getValue() === "Betaald") {
+    if (sheet.getRange(row, 13).getValue() === "Betaald" && !forceResend) {
       return jsonResponse({ ok: true, orderId: orderId, duplicate: true });
     }
 
@@ -201,7 +202,7 @@ function completeCinemaPayment(data, spreadsheetId) {
     sheet.getRange(row, 16).setValue("Nee - controleer Apps Script");
   }
 
-  return jsonResponse({ ok: true, orderId: orderId });
+  return jsonResponse({ ok: true, orderId: orderId, resent: forceResend });
 }
 
 function isBlockedCinemaOrder(order) {

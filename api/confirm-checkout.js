@@ -184,6 +184,10 @@ module.exports = async function handler(request, response) {
   const body =
     typeof request.body === "string" ? JSON.parse(request.body || "{}") : request.body || {};
   const sessionId = cleanSessionId(body.sessionId);
+  const forceResend =
+    body.forceResend === true ||
+    body.resend === true ||
+    body.force === true;
 
   if (!sessionId.startsWith("cs_")) {
     return response.status(400).json({ ok: false, message: "Ongeldige betaalreferentie." });
@@ -259,6 +263,7 @@ module.exports = async function handler(request, response) {
         paymentIntentId: sessionPaymentIntentId(session),
         amountTotal: session.amount_total || 0,
         customerEmail: session.customer_details?.email || session.customer_email || "",
+        forceResend: eventType === "cinema" ? forceResend : false,
         ...cinemaPayload,
       },
     });
@@ -267,6 +272,7 @@ module.exports = async function handler(request, response) {
       ok: true,
       synced: !result.manualProcessing && !result.blocked,
       duplicate: Boolean(result.duplicate),
+      resent: Boolean(result.resent),
       manualProcessing: Boolean(result.manualProcessing),
       blocked: Boolean(result.blocked),
       orderId,
