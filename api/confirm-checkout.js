@@ -10,6 +10,7 @@ const wait = (milliseconds) =>
 
 const cleanSessionId = (value) => String(value || "").trim().slice(0, 120);
 const normalizeKey = (value) => String(value || "").trim().toLowerCase();
+const truthy = (value) => value === true || value === "true" || value === "1";
 const blockedCinemaEmails = new Set(["lievemalfliet@telenet.be"]);
 const blockedCinemaOrderIds = new Set(["CINEMA-20260815-133831-8D416E"]);
 
@@ -184,6 +185,17 @@ module.exports = async function handler(request, response) {
   const body =
     typeof request.body === "string" ? JSON.parse(request.body || "{}") : request.body || {};
   const sessionId = cleanSessionId(body.sessionId);
+  const requestedForceResend =
+    truthy(body.forceResend) ||
+    truthy(body.resend) ||
+    truthy(body.force);
+  const expectedResendToken =
+    process.env.CONFIRM_CHECKOUT_RESEND_TOKEN ||
+    process.env.CINEMA_FORM_SECRET ||
+    "";
+  const providedResendToken = String(
+    body.resendToken || request.headers["x-resend-token"] || "",
+  ).trim();
 
   if (!sessionId.startsWith("cs_")) {
     return response.status(400).json({ ok: false, message: "Ongeldige betaalreferentie." });
@@ -198,6 +210,11 @@ module.exports = async function handler(request, response) {
     const eventType = metadata.event || (hasCinemaLineItems(lineItems) ? "cinema" : "");
     const orderId = metadata.order_id || session.client_reference_id;
     const cinemaPayload = cinemaOrderPayloadFromSession(session, lineItems);
+    const forceResend =
+      eventType === "cinema" &&
+      requestedForceResend &&
+      expectedResendToken &&
+      providedResendToken === expectedResendToken;
 
     diagnostic = {
       eventType,
@@ -222,6 +239,13 @@ module.exports = async function handler(request, response) {
 
     if (!orderId || (eventType !== "cinema" && eventType !== "bbq")) {
       return response.status(400).json({ ok: false, message: "Onbekende bestelling." });
+    }
+
+    if (requestedForceResend && eventType === "cinema" && !forceResend) {
+      return response.status(403).json({
+        ok: false,
+        message: "Handmatig opnieuw versturen is niet toegestaan.",
+      });
     }
 
     if (!isPaidSession(session)) {
@@ -259,6 +283,7 @@ module.exports = async function handler(request, response) {
         paymentIntentId: sessionPaymentIntentId(session),
         amountTotal: session.amount_total || 0,
         customerEmail: session.customer_details?.email || session.customer_email || "",
+        forceResend,
         ...cinemaPayload,
       },
     });
@@ -267,6 +292,7 @@ module.exports = async function handler(request, response) {
       ok: true,
       synced: !result.manualProcessing && !result.blocked,
       duplicate: Boolean(result.duplicate),
+      resent: Boolean(result.resent),
       manualProcessing: Boolean(result.manualProcessing),
       blocked: Boolean(result.blocked),
       orderId,
