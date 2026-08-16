@@ -182,12 +182,36 @@ module.exports = async function handler(request, response) {
     return response.status(400).json({ ok: false, message: "Ongeldige betaalreferentie." });
   }
 
+  let diagnostic = {};
+
   try {
     const session = await fetchStripeSession(sessionId);
     const lineItems = await fetchStripeLineItems(sessionId);
     const metadata = session.metadata || {};
     const eventType = metadata.event || (hasCinemaLineItems(lineItems) ? "cinema" : "");
     const orderId = metadata.order_id || session.client_reference_id;
+    const cinemaPayload = cinemaOrderPayloadFromSession(session, lineItems);
+
+    diagnostic = {
+      eventType,
+      orderId,
+      paymentStatus: session.payment_status || "",
+      paymentIntentStatus: session.payment_intent?.status || "",
+      lineItems: lineItems.map((item) => ({
+        description: item.description || "",
+        quantity: item.quantity || 0,
+      })),
+      cinemaQuantities: {
+        ratatouilleAdultQuantity: cinemaPayload.ratatouilleAdultQuantity || 0,
+        ratatouilleChildQuantity: cinemaPayload.ratatouilleChildQuantity || 0,
+        ratatouilleGiftQuantity: cinemaPayload.ratatouilleGiftQuantity || 0,
+        orientAdultQuantity: cinemaPayload.orientAdultQuantity || 0,
+        orientChildQuantity: cinemaPayload.orientChildQuantity || 0,
+        orientGiftQuantity: cinemaPayload.orientGiftQuantity || 0,
+      },
+      hasName: Boolean(cinemaPayload.name),
+      hasEmail: Boolean(cinemaPayload.email),
+    };
 
     if (!orderId || (eventType !== "cinema" && eventType !== "bbq")) {
       return response.status(400).json({ ok: false, message: "Onbekende bestelling." });
@@ -215,7 +239,7 @@ module.exports = async function handler(request, response) {
         paymentIntentId: sessionPaymentIntentId(session),
         amountTotal: session.amount_total || 0,
         customerEmail: session.customer_details?.email || session.customer_email || "",
-        ...cinemaOrderPayloadFromSession(session, lineItems),
+        ...cinemaPayload,
       },
     });
 
@@ -237,6 +261,7 @@ module.exports = async function handler(request, response) {
       message: "De betaling is ontvangen, maar de bevestiging kon nog niet worden verwerkt.",
       detail: error.message || "",
       status: error.status || null,
+      diagnostic,
     });
   }
 };
