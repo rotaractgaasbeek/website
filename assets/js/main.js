@@ -25,27 +25,6 @@ document.querySelectorAll(".nav__link").forEach((link) => {
   }
 });
 
-const ticketAlert = document.querySelector("[data-ticket-alert]");
-const ticketAlertClose = document.querySelector("[data-ticket-alert-close]");
-
-if (ticketAlert && ticketAlertClose) {
-  body.classList.add("ticket-alert-open");
-  ticketAlertClose.focus({ preventScroll: true });
-
-  const closeTicketAlert = () => {
-    ticketAlert.hidden = true;
-    body.classList.remove("ticket-alert-open");
-  };
-
-  ticketAlertClose.addEventListener("click", closeTicketAlert);
-  ticketAlert.addEventListener("click", (event) => {
-    if (event.target === ticketAlert) closeTicketAlert();
-  });
-  document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape" && !ticketAlert.hidden) closeTicketAlert();
-  });
-}
-
 const calendarTitle = document.querySelector("[data-calendar-title]");
 const calendarBoard = document.querySelector("[data-calendar-board]");
 const calendarAgenda = document.querySelector("[data-calendar-agenda]");
@@ -79,7 +58,7 @@ const fixedCalendarItems = [
   {
     title: "Openluchtcinema",
     date: "2026-08-16",
-    label: "Opkomend event",
+    label: "Afgelopen event",
     description: "Een filmavond in open lucht in de Dekenijtuin in Lennik.",
     time: "Vanaf 19u",
     location: "Dekenijtuin in Lennik",

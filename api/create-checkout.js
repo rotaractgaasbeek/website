@@ -84,6 +84,13 @@ module.exports = async function handler(request, response) {
     return response.status(400).json({ ok: false, message: "Onbekend evenement." });
   }
 
+  if (eventType === "cinema") {
+    return response.status(410).json({
+      ok: false,
+      message: "De ticketverkoop voor de openluchtcinema is afgesloten.",
+    });
+  }
+
   const stripePaymentMethod = PAYMENT_METHODS[paymentMethod];
 
   if (!stripePaymentMethod) {
