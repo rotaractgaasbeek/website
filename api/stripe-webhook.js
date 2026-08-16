@@ -17,6 +17,14 @@ const wait = (milliseconds) =>
     setTimeout(resolve, milliseconds);
   });
 
+const normalizeKey = (value) => String(value || "").trim().toLowerCase();
+const blockedCinemaEmails = new Set(["lievemalfliet@telenet.be"]);
+const blockedCinemaOrderIds = new Set(["CINEMA-20260815-133831-8D416E"]);
+
+const isBlockedCinemaOrder = ({ email, orderId }) =>
+  blockedCinemaEmails.has(normalizeKey(email)) ||
+  blockedCinemaOrderIds.has(String(orderId || "").trim());
+
 const verifyStripeSignature = (rawBody, signatureHeader, secret) => {
   const parts = String(signatureHeader || "").split(",");
   const timestamp = parts.find((part) => part.startsWith("t="))?.slice(2);
@@ -140,11 +148,17 @@ async function handler(request, response) {
     event.type === "checkout.session.async_payment_failed";
 
   try {
-    if (eventName === "cinema") {
+    if (
+      eventName === "cinema" &&
+      isBlockedCinemaOrder({
+        email: cinemaOrderPayloadFromSession(session).email,
+        orderId,
+      })
+    ) {
       return response.status(200).json({
         received: true,
         synced: false,
-        manualProcessing: true,
+        blocked: true,
       });
     }
 

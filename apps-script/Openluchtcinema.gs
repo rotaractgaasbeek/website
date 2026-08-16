@@ -1,6 +1,8 @@
 const CINEMA_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const CINEMA_SHEET_NAME = "Ticketbestellingen";
-const CINEMA_AUTOMATIC_PROCESSING_ENABLED = false;
+const CINEMA_AUTOMATIC_PROCESSING_ENABLED = true;
+const CINEMA_BLOCKED_EMAILS = ["lievemalfliet@telenet.be"];
+const CINEMA_BLOCKED_ORDER_IDS = ["CINEMA-20260815-133831-8D416E"];
 const CINEMA_LOGO_URL =
   "https://www.rotaractgaasbeek.be/assets/images/rotaract-masterbrand-transparent.png";
 
@@ -150,6 +152,11 @@ function completeCinemaPayment(data, spreadsheetId) {
   const orderId = cleanValue(data.orderId, 80);
   const stripeSessionId = cleanValue(data.stripeSessionId, 180);
   const paymentIntentId = cleanValue(data.paymentIntentId, 180);
+
+  if (isBlockedCinemaOrder(data)) {
+    return jsonResponse({ ok: true, orderId: orderId, blocked: true });
+  }
+
   const lock = LockService.getScriptLock();
   let sheet;
   let row;
@@ -166,6 +173,11 @@ function completeCinemaPayment(data, spreadsheetId) {
       if (!row) {
         return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
       }
+    }
+
+    order = cinemaOrderFromRow(sheet.getRange(row, 1, 1, 16).getValues()[0]);
+    if (isBlockedCinemaOrder(order)) {
+      return jsonResponse({ ok: true, orderId: orderId, blocked: true });
     }
 
     if (sheet.getRange(row, 13).getValue() === "Betaald") {
@@ -190,6 +202,16 @@ function completeCinemaPayment(data, spreadsheetId) {
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
+}
+
+function isBlockedCinemaOrder(order) {
+  const email = cleanValue(order.email, 180).toLowerCase();
+  const orderId = cleanValue(order.orderId, 80);
+
+  return (
+    CINEMA_BLOCKED_EMAILS.indexOf(email) !== -1 ||
+    CINEMA_BLOCKED_ORDER_IDS.indexOf(orderId) !== -1
+  );
 }
 
 function findCinemaPaymentRow(sheet, data) {

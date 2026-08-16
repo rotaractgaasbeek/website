@@ -30,8 +30,8 @@
           <div class="page-hero__body">
             <p class="eyebrow">Bestelling ontvangen</p>
             <h1 class="page-title">Bedankt voor je bestelling.</h1>
-            <p class="lead">Stripe verwerkt je betaling. Door een technisch probleem verwerken we de ticketbevestigingen vandaag manueel.</p>
-            <p class="form-status" role="status" aria-live="polite" data-confirm-status>We controleren je betaling. Toon deze pagina gerust aan de kassa indien nodig.</p>
+            <p class="lead">Stripe verwerkt je betaling. Zodra de betaling bevestigd is, ontvang je van Rotaract Gaasbeek Pajottenland een e-mail met je bestelnummer en ticketgegevens.</p>
+            <p class="form-status" role="status" aria-live="polite" data-confirm-status>We controleren je betaling en bevestigen je tickets.</p>
             <div class="hero__actions">
               <a class="button button--primary" href="index.html">Naar home</a>
               <a class="button button--secondary" href="events.html">Bekijk events</a>
@@ -77,13 +77,13 @@
               throw new Error(result.message || "De bevestiging kon nog niet worden verwerkt.");
             }
 
-            if (result.manualProcessing) {
+            if (result.manualProcessing || result.blocked) {
               status.textContent = "Je betaling is bevestigd. We verwerken je ticketbevestiging manueel.";
               status.classList.remove("form-status--error");
               return;
             }
 
-            status.textContent = "Je betaling is bevestigd.";
+            status.textContent = "Je betaling is bevestigd. Je ontvangt zo meteen je bevestigingsmail.";
             status.classList.remove("form-status--error");
           } catch (error) {
             if (attempts < maxErrorAttempts) {

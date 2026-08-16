@@ -9,6 +9,13 @@ const wait = (milliseconds) =>
   });
 
 const cleanSessionId = (value) => String(value || "").trim().slice(0, 120);
+const normalizeKey = (value) => String(value || "").trim().toLowerCase();
+const blockedCinemaEmails = new Set(["lievemalfliet@telenet.be"]);
+const blockedCinemaOrderIds = new Set(["CINEMA-20260815-133831-8D416E"]);
+
+const isBlockedCinemaOrder = ({ email, orderId }) =>
+  blockedCinemaEmails.has(normalizeKey(email)) ||
+  blockedCinemaOrderIds.has(String(orderId || "").trim());
 
 const sessionPaymentIntentId = (session) => {
   if (typeof session.payment_intent === "string") {
@@ -227,11 +234,14 @@ module.exports = async function handler(request, response) {
       });
     }
 
-    if (eventType === "cinema") {
+    if (
+      eventType === "cinema" &&
+      isBlockedCinemaOrder({ email: cinemaPayload.email, orderId })
+    ) {
       return response.status(200).json({
         ok: true,
         synced: false,
-        manualProcessing: true,
+        blocked: true,
         orderId,
         diagnostic,
       });
@@ -255,8 +265,10 @@ module.exports = async function handler(request, response) {
 
     return response.status(200).json({
       ok: true,
-      synced: true,
+      synced: !result.manualProcessing && !result.blocked,
       duplicate: Boolean(result.duplicate),
+      manualProcessing: Boolean(result.manualProcessing),
+      blocked: Boolean(result.blocked),
       orderId,
     });
   } catch (error) {
