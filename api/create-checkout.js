@@ -1,7 +1,5 @@
-const {
-  callGoogleAppsScript,
-  callCinemaGoogleAppsScript,
-} = require("./_lib/google-apps-script");
+const { callGoogleAppsScript } = require("./_lib/google-apps-script");
+const crypto = require("crypto");
 
 const SITE_URL = process.env.SITE_URL || "https://www.rotaractgaasbeek.be";
 const BBQ_PRICE = 10000;
@@ -30,6 +28,29 @@ const appendLineItem = (params, index, name, amount, quantity) => {
   params.set(`line_items[${index}][price_data][product_data][name]`, name);
   params.set(`line_items[${index}][quantity]`, String(quantity));
 };
+
+const brusselsTimestamp = () => {
+  const parts = new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Brussels",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  })
+    .formatToParts(new Date())
+    .reduce((result, part) => {
+      result[part.type] = part.value;
+      return result;
+    }, {});
+
+  return `${parts.year}${parts.month}${parts.day}-${parts.hour}${parts.minute}${parts.second}`;
+};
+
+const createCinemaOrderId = () =>
+  `CINEMA-${brusselsTimestamp()}-${crypto.randomBytes(3).toString("hex").toUpperCase()}`;
 
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
@@ -110,25 +131,29 @@ module.exports = async function handler(request, response) {
   }
 
   let reservation;
+  let orderId;
 
   try {
-    const appsScript = eventType === "cinema"
-      ? callCinemaGoogleAppsScript
-      : callGoogleAppsScript;
+    const appsScript = eventType === "bbq" ? callGoogleAppsScript : null;
 
-    reservation = await appsScript({
-      action: "reserve_tickets",
-      ...order,
-      name,
-      email,
-      phone,
-    });
+    if (eventType === "bbq") {
+      reservation = await appsScript({
+        action: "reserve_tickets",
+        ...order,
+        name,
+        email,
+        phone,
+      });
+      orderId = reservation.orderId;
+    } else {
+      orderId = createCinemaOrderId();
+    }
 
     const checkoutParams = {
       mode: "payment",
       customer_email: email,
-      client_reference_id: reservation.orderId,
-      "metadata[order_id]": reservation.orderId,
+      client_reference_id: orderId,
+      "metadata[order_id]": orderId,
       "metadata[event]": eventType,
       "metadata[payment_method]": paymentMethod,
       "payment_method_types[0]": stripePaymentMethod,
@@ -196,36 +221,18 @@ module.exports = async function handler(request, response) {
 
     const attachPayload = {
       action: "attach_checkout",
-      orderId: reservation.orderId,
+      orderId,
       stripeSessionId: checkout.id,
     };
 
-    if (eventType === "cinema") {
-      Object.assign(attachPayload, {
-        ...order,
-        name,
-        email,
-        phone,
-      });
+    if (eventType === "bbq") {
+      await appsScript(attachPayload);
     }
-
-    await appsScript(attachPayload).catch((error) => {
-      console.error("Checkout attachment failed", {
-        eventType,
-        orderId: reservation.orderId,
-        stripeSessionId: checkout.id,
-        message: error.message,
-        status: error.status,
-      });
-    });
 
     return response.status(200).json({ ok: true, url: checkout.url });
   } catch (error) {
-    if (reservation?.orderId) {
-      const appsScript = eventType === "cinema"
-        ? callCinemaGoogleAppsScript
-        : callGoogleAppsScript;
-      await appsScript({
+    if (reservation?.orderId && eventType === "bbq") {
+      await callGoogleAppsScript({
         action: "release_reservation",
         orderId: reservation.orderId,
       }).catch(() => {});

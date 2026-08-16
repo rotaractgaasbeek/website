@@ -155,7 +155,7 @@ async function handler(request, response) {
       });
     }
 
-    if (orderId && isPaymentFailed) {
+    if (orderId && isPaymentFailed && session.metadata?.event !== "cinema") {
       await syncAppsScript({
         appsScript,
         payload: {

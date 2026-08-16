@@ -30,10 +30,13 @@ Bij wijzigingen aan `Openluchtcinema.gs` moet je via
 **Implementeren → Implementaties beheren → Bewerken → Nieuwe versie** opnieuw implementeren.
 
 Voer na deze update ook `setupOpenluchtcinema` opnieuw uit. Bestaande bestellingen
-blijven bewaard, de kolom **Reservatie verloopt** wordt automatisch verwijderd en
-nieuwe bestellingen krijgen een kort nummer zoals `CIN-2026-0001`.
+blijven bewaard en de kolom **Reservatie verloopt** wordt automatisch verwijderd.
 
 Als Vercel-logboeken `Bestelling niet gevonden.` tonen bij `/api/create-checkout`,
 publiceer dan zowel de nieuwste Vercel-code als een nieuwe versie van deze Apps
 Script-web-app. De website stuurt herstelgegevens mee, maar de live Apps Script
 moet die versie ook effectief draaien.
+
+De website schrijft cinemabestellingen pas naar Google Sheets nadat Stripe een
+geslaagde betaling meldt via de webhook. Het bestelnummer komt daarom uit de
+Stripe metadata, bijvoorbeeld `CINEMA-20260816-113000-ABC123`.
