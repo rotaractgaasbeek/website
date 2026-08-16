@@ -140,6 +140,22 @@ module.exports = async function handler(request, response) {
         : `${SITE_URL}/rally.html?betaling=geannuleerd#bbq-tickets`,
     };
 
+    if (eventType === "cinema") {
+      Object.entries({
+        "metadata[name]": name,
+        "metadata[email]": email,
+        "metadata[phone]": phone,
+        "metadata[ratatouilleAdultQuantity]": order.ratatouilleAdultQuantity,
+        "metadata[ratatouilleChildQuantity]": order.ratatouilleChildQuantity,
+        "metadata[ratatouilleGiftQuantity]": order.ratatouilleGiftQuantity,
+        "metadata[orientAdultQuantity]": order.orientAdultQuantity,
+        "metadata[orientChildQuantity]": order.orientChildQuantity,
+        "metadata[orientGiftQuantity]": order.orientGiftQuantity,
+      }).forEach(([key, value]) => {
+        checkoutParams[key] = String(value);
+      });
+    }
+
     const params = new URLSearchParams(checkoutParams);
 
     let lineIndex = 0;
@@ -178,11 +194,22 @@ module.exports = async function handler(request, response) {
       throw new Error(checkout.error?.message || "Stripe Checkout kon niet worden gestart.");
     }
 
-    await appsScript({
+    const attachPayload = {
       action: "attach_checkout",
       orderId: reservation.orderId,
       stripeSessionId: checkout.id,
-    });
+    };
+
+    if (eventType === "cinema") {
+      Object.assign(attachPayload, {
+        ...order,
+        name,
+        email,
+        phone,
+      });
+    }
+
+    await appsScript(attachPayload);
 
     return response.status(200).json({ ok: true, url: checkout.url });
   } catch (error) {

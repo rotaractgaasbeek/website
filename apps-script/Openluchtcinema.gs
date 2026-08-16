@@ -85,13 +85,7 @@ function reserveCinemaTickets(data, spreadsheetId) {
     return jsonResponse({ ok: false, message: "Controleer de ticketgegevens." });
   }
 
-  const totalCents =
-    order.ratatouilleAdultQuantity * 1600 +
-    order.ratatouilleChildQuantity * 1200 +
-    order.ratatouilleGiftQuantity * 1200 +
-    order.orientAdultQuantity * 1600 +
-    order.orientChildQuantity * 1200 +
-    order.orientGiftQuantity * 1200;
+  const totalCents = cinemaTotalCents(order);
   let orderId;
   const lock = LockService.getScriptLock();
 
@@ -130,7 +124,7 @@ function updateCinemaOrder(data, spreadsheetId, status) {
   const orderId = cleanValue(data.orderId, 80);
   const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
   const sheet = ensureCinemaSheet(spreadsheet);
-  const row = findCinemaOrderRow(sheet, orderId);
+  const row = upsertCinemaOrderRow(sheet, data, status);
 
   if (!row) {
     return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
@@ -149,6 +143,7 @@ function completeCinemaPayment(data, spreadsheetId) {
   let sheet;
   let row;
   let order;
+  let restoredOrder = false;
 
   lock.waitLock(10000);
   try {
@@ -157,9 +152,13 @@ function completeCinemaPayment(data, spreadsheetId) {
     row = findCinemaOrderRow(sheet, orderId);
 
     if (!row) {
-      return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
+      row = upsertCinemaOrderRow(sheet, data, "Checkout gestart");
+      if (!row) {
+        return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
+      }
+      restoredOrder = true;
     }
-    if (sheet.getRange(row, 13).getValue() === "Betaald") {
+    if (!restoredOrder && sheet.getRange(row, 13).getValue() === "Betaald") {
       return jsonResponse({ ok: true, orderId: orderId, duplicate: true });
     }
 
@@ -226,6 +225,64 @@ function ensureCinemaSheet(spreadsheet) {
   return sheet;
 }
 
+function upsertCinemaOrderRow(sheet, data, status) {
+  const orderId = cleanValue(data.orderId, 80);
+  let row = findCinemaOrderRow(sheet, orderId);
+
+  if (row) {
+    return row;
+  }
+
+  if (!hasRecoverableCinemaOrder(data)) {
+    return 0;
+  }
+
+  appendCinemaOrderRow(sheet, data, status);
+  SpreadsheetApp.flush();
+  row = findCinemaOrderRow(sheet, orderId);
+  return row || sheet.getLastRow();
+}
+
+function hasRecoverableCinemaOrder(data) {
+  const orderId = cleanValue(data.orderId, 80);
+  const order = normalizeCinemaOrder(data);
+  const totalQuantity = cinemaQuantityFields().reduce(function (total, field) {
+    return total + order[field];
+  }, 0);
+
+  return Boolean(
+    orderId &&
+      order.name &&
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email) &&
+      totalQuantity > 0
+  );
+}
+
+function appendCinemaOrderRow(sheet, data, status) {
+  const orderId = cleanValue(data.orderId, 80);
+  const order = normalizeCinemaOrder(data);
+  const totalCents = cinemaTotalCents(order);
+
+  sheet.appendRow([
+    new Date(),
+    orderId,
+    order.name,
+    order.email,
+    order.phone,
+    order.ratatouilleAdultQuantity,
+    order.ratatouilleChildQuantity,
+    order.ratatouilleGiftQuantity,
+    order.orientAdultQuantity,
+    order.orientChildQuantity,
+    order.orientGiftQuantity,
+    totalCents / 100,
+    status,
+    cleanValue(data.stripeSessionId, 180),
+    cleanValue(data.paymentIntentId, 180),
+    "Nee",
+  ]);
+}
+
 function normalizeCinemaOrder(data) {
   return {
     name: cleanValue(data.name, 120),
@@ -249,6 +306,17 @@ function cinemaQuantityFields() {
     "orientChildQuantity",
     "orientGiftQuantity",
   ];
+}
+
+function cinemaTotalCents(order) {
+  return (
+    order.ratatouilleAdultQuantity * 1600 +
+    order.ratatouilleChildQuantity * 1200 +
+    order.ratatouilleGiftQuantity * 1200 +
+    order.orientAdultQuantity * 1600 +
+    order.orientChildQuantity * 1200 +
+    order.orientGiftQuantity * 1200
+  );
 }
 
 function expireCinemaReservations(sheet) {
@@ -297,7 +365,20 @@ function findCinemaOrderRow(sheet, orderId) {
     .createTextFinder(orderId)
     .matchEntireCell(true)
     .findNext();
-  return result ? result.getRow() : 0;
+  if (result) return result.getRow();
+
+  const values = sheet
+    .getRange(2, 1, sheet.getLastRow() - 1, Math.max(sheet.getLastColumn(), 2))
+    .getDisplayValues();
+  for (let rowIndex = 0; rowIndex < values.length; rowIndex += 1) {
+    for (let columnIndex = 0; columnIndex < values[rowIndex].length; columnIndex += 1) {
+      if (String(values[rowIndex][columnIndex] || "").trim() === orderId) {
+        return rowIndex + 2;
+      }
+    }
+  }
+
+  return 0;
 }
 
 function cinemaOrderFromRow(row) {

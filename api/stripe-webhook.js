@@ -71,6 +71,31 @@ const syncAppsScript = async ({ appsScript, payload, context }) => {
   throw lastError;
 };
 
+const cinemaOrderPayloadFromSession = (session) => {
+  const metadata = session.metadata || {};
+
+  if (metadata.event !== "cinema") {
+    return {};
+  }
+
+  return {
+    event: "Openluchtcinema 2026",
+    name: metadata.name || session.customer_details?.name || "",
+    email:
+      metadata.email ||
+      session.customer_details?.email ||
+      session.customer_email ||
+      "",
+    phone: metadata.phone || session.customer_details?.phone || "",
+    ratatouilleAdultQuantity: metadata.ratatouilleAdultQuantity || 0,
+    ratatouilleChildQuantity: metadata.ratatouilleChildQuantity || 0,
+    ratatouilleGiftQuantity: metadata.ratatouilleGiftQuantity || 0,
+    orientAdultQuantity: metadata.orientAdultQuantity || 0,
+    orientChildQuantity: metadata.orientChildQuantity || 0,
+    orientGiftQuantity: metadata.orientGiftQuantity || 0,
+  };
+};
+
 async function handler(request, response) {
   if (request.method !== "POST") {
     return response.status(405).send("Method not allowed");
@@ -124,6 +149,7 @@ async function handler(request, response) {
           paymentIntentId: session.payment_intent || "",
           amountTotal: session.amount_total || 0,
           customerEmail: session.customer_details?.email || session.customer_email || "",
+          ...cinemaOrderPayloadFromSession(session),
         },
         context: { eventType: event.type, orderId },
       });
@@ -136,6 +162,7 @@ async function handler(request, response) {
           action: "payment_failed",
           orderId,
           stripeSessionId: session.id,
+          ...cinemaOrderPayloadFromSession(session),
         },
         context: { eventType: event.type, orderId },
       });

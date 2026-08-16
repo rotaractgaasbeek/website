@@ -32,3 +32,8 @@ Bij wijzigingen aan `Openluchtcinema.gs` moet je via
 Voer na deze update ook `setupOpenluchtcinema` opnieuw uit. Bestaande bestellingen
 blijven bewaard, de kolom **Reservatie verloopt** wordt automatisch verwijderd en
 nieuwe bestellingen krijgen een kort nummer zoals `CIN-2026-0001`.
+
+Als Vercel-logboeken `Bestelling niet gevonden.` tonen bij `/api/create-checkout`,
+publiceer dan zowel de nieuwste Vercel-code als een nieuwe versie van deze Apps
+Script-web-app. De website stuurt herstelgegevens mee, maar de live Apps Script
+moet die versie ook effectief draaien.
