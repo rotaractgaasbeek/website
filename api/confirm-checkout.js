@@ -166,6 +166,8 @@ module.exports = async function handler(request, response) {
     return response.status(502).json({
       ok: false,
       message: "De betaling is ontvangen, maar de bevestiging kon nog niet worden verwerkt.",
+      detail: error.message || "",
+      status: error.status || null,
     });
   }
 };
