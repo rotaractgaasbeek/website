@@ -148,32 +148,34 @@ function updateCinemaOrder(data, spreadsheetId, status) {
 
 function completeCinemaPayment(data, spreadsheetId) {
   const orderId = cleanValue(data.orderId, 80);
+  const stripeSessionId = cleanValue(data.stripeSessionId, 180);
+  const paymentIntentId = cleanValue(data.paymentIntentId, 180);
   const lock = LockService.getScriptLock();
   let sheet;
   let row;
   let order;
-  let restoredOrder = false;
 
   lock.waitLock(10000);
   try {
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
     sheet = ensureCinemaSheet(spreadsheet);
-    row = findCinemaOrderRow(sheet, orderId);
+    row = findCinemaOrderRow(sheet, orderId) || findCinemaPaymentRow(sheet, data);
 
     if (!row) {
       row = upsertCinemaOrderRow(sheet, data, "Checkout gestart");
       if (!row) {
         return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
       }
-      restoredOrder = true;
     }
-    if (!restoredOrder && sheet.getRange(row, 13).getValue() === "Betaald") {
+
+    if (sheet.getRange(row, 13).getValue() === "Betaald") {
       return jsonResponse({ ok: true, orderId: orderId, duplicate: true });
     }
 
     sheet.getRange(row, 13).setValue("Betaald");
-    sheet.getRange(row, 14).setValue(cleanValue(data.stripeSessionId, 180));
-    sheet.getRange(row, 15).setValue(cleanValue(data.paymentIntentId, 180));
+    sheet.getRange(row, 14).setValue(stripeSessionId);
+    sheet.getRange(row, 15).setValue(paymentIntentId);
+    sheet.getRange(row, 16).setValue("Bezig");
     order = cinemaOrderFromRow(sheet.getRange(row, 1, 1, 16).getValues()[0]);
   } finally {
     lock.releaseLock();
@@ -188,6 +190,33 @@ function completeCinemaPayment(data, spreadsheetId) {
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
+}
+
+function findCinemaPaymentRow(sheet, data) {
+  const stripeSessionId = cleanValue(data.stripeSessionId, 180);
+  const paymentIntentId = cleanValue(data.paymentIntentId, 180);
+
+  if (sheet.getLastRow() < 2) return 0;
+
+  if (stripeSessionId) {
+    const sessionResult = sheet
+      .getRange(2, 14, sheet.getLastRow() - 1, 1)
+      .createTextFinder(stripeSessionId)
+      .matchEntireCell(true)
+      .findNext();
+    if (sessionResult) return sessionResult.getRow();
+  }
+
+  if (paymentIntentId) {
+    const intentResult = sheet
+      .getRange(2, 15, sheet.getLastRow() - 1, 1)
+      .createTextFinder(paymentIntentId)
+      .matchEntireCell(true)
+      .findNext();
+    if (intentResult) return intentResult.getRow();
+  }
+
+  return 0;
 }
 
 function ensureCinemaSheet(spreadsheet) {
