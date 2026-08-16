@@ -1538,6 +1538,10 @@ textarea {
   background: rgba(24, 33, 44, 0.68);
 }
 
+.ticket-alert-modal[hidden] {
+  display: none;
+}
+
 .ticket-alert-modal__panel {
   width: min(100%, 34rem);
   padding: clamp(1.25rem, 4vw, 2rem);
