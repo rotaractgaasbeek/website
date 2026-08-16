@@ -127,7 +127,8 @@ async function handler(request, response) {
 
   const session = event.data?.object || {};
   const orderId = session.metadata?.order_id || session.client_reference_id;
-  const appsScript = session.metadata?.event === "cinema"
+  const eventName = session.metadata?.event || "";
+  const appsScript = eventName === "cinema"
     ? callCinemaGoogleAppsScript
     : callGoogleAppsScript;
   const isPaymentCompleted =
@@ -139,6 +140,14 @@ async function handler(request, response) {
     event.type === "checkout.session.async_payment_failed";
 
   try {
+    if (eventName === "cinema") {
+      return response.status(200).json({
+        received: true,
+        synced: false,
+        manualProcessing: true,
+      });
+    }
+
     if (orderId && isPaymentCompleted) {
       await syncAppsScript({
         appsScript,

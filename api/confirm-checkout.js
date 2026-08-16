@@ -227,6 +227,16 @@ module.exports = async function handler(request, response) {
       });
     }
 
+    if (eventType === "cinema") {
+      return response.status(200).json({
+        ok: true,
+        synced: false,
+        manualProcessing: true,
+        orderId,
+        diagnostic,
+      });
+    }
+
     const appsScript = eventType === "cinema"
       ? callCinemaGoogleAppsScript
       : callGoogleAppsScript;

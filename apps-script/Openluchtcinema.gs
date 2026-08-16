@@ -1,5 +1,6 @@
 const CINEMA_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const CINEMA_SHEET_NAME = "Ticketbestellingen";
+const CINEMA_AUTOMATIC_PROCESSING_ENABLED = false;
 const CINEMA_LOGO_URL =
   "https://www.rotaractgaasbeek.be/assets/images/rotaract-masterbrand-transparent.png";
 
@@ -58,6 +59,14 @@ function doPost(event) {
       return updateCinemaOrder(data, spreadsheetId, "Betaling mislukt");
     }
     if (data.action === "payment_completed") {
+      if (!CINEMA_AUTOMATIC_PROCESSING_ENABLED) {
+        return jsonResponse({
+          ok: true,
+          synced: false,
+          manualProcessing: true,
+          message: "Cinemabestellingen worden tijdelijk manueel verwerkt.",
+        });
+      }
       return completeCinemaPayment(data, spreadsheetId);
     }
 
