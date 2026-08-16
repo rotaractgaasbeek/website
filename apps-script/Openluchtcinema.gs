@@ -1,6 +1,6 @@
 const CINEMA_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const CINEMA_SHEET_NAME = "Ticketbestellingen";
-const CINEMA_AUTOMATIC_PROCESSING_ENABLED = true;
+const CINEMA_AUTOMATIC_PROCESSING_ENABLED = false;
 const CINEMA_BLOCKED_EMAILS = ["lievemalfliet@telenet.be"];
 const CINEMA_BLOCKED_ORDER_IDS = ["CINEMA-20260815-133831-8D416E"];
 const CINEMA_LOGO_URL =
@@ -153,6 +153,16 @@ function completeCinemaPayment(data, spreadsheetId) {
   const stripeSessionId = cleanValue(data.stripeSessionId, 180);
   const paymentIntentId = cleanValue(data.paymentIntentId, 180);
   const forceResend = data.forceResend === true || data.forceResend === "true";
+
+  if (!CINEMA_AUTOMATIC_PROCESSING_ENABLED) {
+    return jsonResponse({
+      ok: true,
+      orderId: orderId,
+      synced: false,
+      manualProcessing: true,
+      message: "Cinemabestellingen worden tijdelijk manueel verwerkt.",
+    });
+  }
 
   if (isBlockedCinemaOrder(data)) {
     return jsonResponse({ ok: true, orderId: orderId, blocked: true });
@@ -470,6 +480,11 @@ function cinemaTicketLines(order) {
 }
 
 function sendCinemaTicketEmails(order) {
+  if (!CINEMA_AUTOMATIC_PROCESSING_ENABLED) {
+    console.warn("Automatische cinemamails staan uit.");
+    return;
+  }
+
   const lines = cinemaTicketLines(order);
   const hasGift = order.ratatouilleGiftQuantity + order.orientGiftQuantity > 0;
   const signatureImages = getCinemaSignatureImages();

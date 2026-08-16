@@ -258,14 +258,11 @@ module.exports = async function handler(request, response) {
       });
     }
 
-    if (
-      eventType === "cinema" &&
-      isBlockedCinemaOrder({ email: cinemaPayload.email, orderId })
-    ) {
+    if (eventType === "cinema") {
       return response.status(200).json({
         ok: true,
         synced: false,
-        blocked: true,
+        manualProcessing: true,
         orderId,
         diagnostic,
       });

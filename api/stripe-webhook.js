@@ -148,17 +148,11 @@ async function handler(request, response) {
     event.type === "checkout.session.async_payment_failed";
 
   try {
-    if (
-      eventName === "cinema" &&
-      isBlockedCinemaOrder({
-        email: cinemaOrderPayloadFromSession(session).email,
-        orderId,
-      })
-    ) {
+    if (eventName === "cinema") {
       return response.status(200).json({
         received: true,
         synced: false,
-        blocked: true,
+        manualProcessing: true,
       });
     }
 
