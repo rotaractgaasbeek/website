@@ -31,6 +31,7 @@
             <p class="eyebrow">Bestelling ontvangen</p>
             <h1 class="page-title">Bedankt voor je bestelling.</h1>
             <p class="lead">Stripe verwerkt je betaling. Zodra de betaling bevestigd is, ontvang je van Rotaract Gaasbeek Pajottenland een e-mail met je bestelnummer en ticketgegevens.</p>
+            <p class="form-status" role="status" aria-live="polite" data-confirm-status>We controleren je betaling en bevestigen je tickets.</p>
             <div class="hero__actions">
               <a class="button button--primary" href="index.html">Naar home</a>
               <a class="button button--secondary" href="events.html">Bekijk events</a>
@@ -39,5 +40,58 @@
         </div>
       </section>
     </main>
+    <script>
+      (() => {
+        const status = document.querySelector("[data-confirm-status]");
+        const sessionId = new URLSearchParams(window.location.search).get("session_id");
+
+        if (!status || !sessionId) return;
+
+        let attempts = 0;
+
+        const confirmPayment = async () => {
+          attempts += 1;
+
+          try {
+            const response = await fetch("/api/confirm-checkout", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ sessionId }),
+            });
+            const result = await response.json().catch(() => ({}));
+
+            if (response.status === 202 || result.pending) {
+              if (attempts < 8) {
+                status.textContent = "Je betaling wordt nog bevestigd. We controleren opnieuw...";
+                setTimeout(confirmPayment, 4000);
+                return;
+              }
+
+              status.textContent = "Je betaling wordt nog verwerkt. Je ontvangt je bevestiging zodra Stripe de betaling bevestigt.";
+              return;
+            }
+
+            if (!response.ok || !result.ok) {
+              throw new Error(result.message || "De bevestiging kon nog niet worden verwerkt.");
+            }
+
+            status.textContent = "Je betaling is bevestigd. Je ontvangt zo meteen je bevestigingsmail.";
+            status.classList.remove("form-status--error");
+          } catch (error) {
+            if (attempts < 4) {
+              setTimeout(confirmPayment, 3000);
+              return;
+            }
+
+            status.textContent =
+              error.message ||
+              "Je betaling is ontvangen, maar de bevestigingsmail kon nog niet automatisch worden verwerkt.";
+            status.classList.add("form-status--error");
+          }
+        };
+
+        confirmPayment();
+      })();
+    </script>
   </body>
 </html>
