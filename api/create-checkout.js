@@ -209,7 +209,15 @@ module.exports = async function handler(request, response) {
       });
     }
 
-    await appsScript(attachPayload);
+    await appsScript(attachPayload).catch((error) => {
+      console.error("Checkout attachment failed", {
+        eventType,
+        orderId: reservation.orderId,
+        stripeSessionId: checkout.id,
+        message: error.message,
+        status: error.status,
+      });
+    });
 
     return response.status(200).json({ ok: true, url: checkout.url });
   } catch (error) {
