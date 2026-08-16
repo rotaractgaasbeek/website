@@ -21,12 +21,54 @@ const sessionPaymentIntentId = (session) => {
 const isPaidSession = (session) =>
   session.payment_status === "paid" || session.payment_intent?.status === "succeeded";
 
-const cinemaOrderPayloadFromSession = (session) => {
+const emptyCinemaQuantities = () => ({
+  ratatouilleAdultQuantity: 0,
+  ratatouilleChildQuantity: 0,
+  ratatouilleGiftQuantity: 0,
+  orientAdultQuantity: 0,
+  orientChildQuantity: 0,
+  orientGiftQuantity: 0,
+});
+
+const cinemaQuantitiesFromLineItems = (lineItems) => {
+  const quantities = emptyCinemaQuantities();
+
+  lineItems.forEach((item) => {
+    const description = String(item.description || "").toLowerCase();
+    const quantity = Number.parseInt(item.quantity, 10) || 0;
+
+    if (description.includes("ratatouille") && description.includes("13+")) {
+      quantities.ratatouilleAdultQuantity += quantity;
+    } else if (description.includes("ratatouille") && description.includes("schenkticket")) {
+      quantities.ratatouilleGiftQuantity += quantity;
+    } else if (description.includes("ratatouille")) {
+      quantities.ratatouilleChildQuantity += quantity;
+    } else if (description.includes("orient express") && description.includes("13+")) {
+      quantities.orientAdultQuantity += quantity;
+    } else if (description.includes("orient express") && description.includes("schenkticket")) {
+      quantities.orientGiftQuantity += quantity;
+    } else if (description.includes("orient express")) {
+      quantities.orientChildQuantity += quantity;
+    }
+  });
+
+  return quantities;
+};
+
+const hasCinemaLineItems = (lineItems) =>
+  lineItems.some((item) => {
+    const description = String(item.description || "").toLowerCase();
+    return description.includes("ratatouille") || description.includes("orient express");
+  });
+
+const cinemaOrderPayloadFromSession = (session, lineItems) => {
   const metadata = session.metadata || {};
 
-  if (metadata.event !== "cinema") {
+  if (metadata.event !== "cinema" && !hasCinemaLineItems(lineItems)) {
     return {};
   }
+
+  const lineItemQuantities = cinemaQuantitiesFromLineItems(lineItems);
 
   return {
     event: "Openluchtcinema 2026",
@@ -37,12 +79,18 @@ const cinemaOrderPayloadFromSession = (session) => {
       session.customer_email ||
       "",
     phone: metadata.phone || session.customer_details?.phone || "",
-    ratatouilleAdultQuantity: metadata.ratatouilleAdultQuantity || 0,
-    ratatouilleChildQuantity: metadata.ratatouilleChildQuantity || 0,
-    ratatouilleGiftQuantity: metadata.ratatouilleGiftQuantity || 0,
-    orientAdultQuantity: metadata.orientAdultQuantity || 0,
-    orientChildQuantity: metadata.orientChildQuantity || 0,
-    orientGiftQuantity: metadata.orientGiftQuantity || 0,
+    ratatouilleAdultQuantity:
+      metadata.ratatouilleAdultQuantity || lineItemQuantities.ratatouilleAdultQuantity,
+    ratatouilleChildQuantity:
+      metadata.ratatouilleChildQuantity || lineItemQuantities.ratatouilleChildQuantity,
+    ratatouilleGiftQuantity:
+      metadata.ratatouilleGiftQuantity || lineItemQuantities.ratatouilleGiftQuantity,
+    orientAdultQuantity:
+      metadata.orientAdultQuantity || lineItemQuantities.orientAdultQuantity,
+    orientChildQuantity:
+      metadata.orientChildQuantity || lineItemQuantities.orientChildQuantity,
+    orientGiftQuantity:
+      metadata.orientGiftQuantity || lineItemQuantities.orientGiftQuantity,
   };
 };
 
@@ -66,6 +114,26 @@ const fetchStripeSession = async (sessionId) => {
   }
 
   return session;
+};
+
+const fetchStripeLineItems = async (sessionId) => {
+  const params = new URLSearchParams({ limit: "100" });
+  const response = await fetch(
+    `https://api.stripe.com/v1/checkout/sessions/${encodeURIComponent(sessionId)}/line_items?${params}`,
+    {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${process.env.STRIPE_SECRET_KEY}`,
+      },
+    },
+  );
+  const result = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(result.error?.message || "Stripe-ticketgegevens konden niet worden gecontroleerd.");
+  }
+
+  return Array.isArray(result.data) ? result.data : [];
 };
 
 const syncAppsScript = async ({ appsScript, payload }) => {
@@ -116,8 +184,9 @@ module.exports = async function handler(request, response) {
 
   try {
     const session = await fetchStripeSession(sessionId);
+    const lineItems = await fetchStripeLineItems(sessionId);
     const metadata = session.metadata || {};
-    const eventType = metadata.event || "";
+    const eventType = metadata.event || (hasCinemaLineItems(lineItems) ? "cinema" : "");
     const orderId = metadata.order_id || session.client_reference_id;
 
     if (!orderId || (eventType !== "cinema" && eventType !== "bbq")) {
@@ -146,7 +215,7 @@ module.exports = async function handler(request, response) {
         paymentIntentId: sessionPaymentIntentId(session),
         amountTotal: session.amount_total || 0,
         customerEmail: session.customer_details?.email || session.customer_email || "",
-        ...cinemaOrderPayloadFromSession(session),
+        ...cinemaOrderPayloadFromSession(session, lineItems),
       },
     });
 
