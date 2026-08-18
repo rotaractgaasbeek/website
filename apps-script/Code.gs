@@ -2,6 +2,9 @@ const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
 const TICKET_SHEET_NAME = "Ticketbestellingen";
 const BBQ_CAPACITY = 120;
+const RAC_GP_BBQ_DATE_TEXT = "zondag 6 september 2026";
+const RAC_GP_BBQ_TIME_TEXT = "18u";
+const RAC_GP_BBQ_LOCATION_TEXT = "Gravenhof, Beersel";
 const RAC_GP_LOGO_URL =
   "https://www.rotaractgaasbeek.be/assets/images/rotaract-masterbrand-transparent.png";
 
@@ -594,6 +597,21 @@ function sendTicketEmails(order) {
     );
   }
 
+  const practicalLines = [];
+  if (order.bbqQuantity) {
+    practicalLines.push("Datum: " + RAC_GP_BBQ_DATE_TEXT);
+    practicalLines.push("Start BBQ: " + RAC_GP_BBQ_TIME_TEXT);
+    practicalLines.push("Locatie: " + RAC_GP_BBQ_LOCATION_TEXT);
+  }
+  const practicalText = practicalLines.length
+    ? "\nPraktisch:\n" + practicalLines.join("\n") + "\n"
+    : "";
+  const practicalHtml = practicalLines.length
+    ? '<p style="margin:14px 0 0"><strong>Praktisch</strong><br>' +
+      practicalLines.map(escapeHtml).join("<br>") +
+      "</p>"
+    : "";
+
   const participantOptions = {
     to: order.email,
     name: "Rotaract Gaasbeek Pajottenland",
@@ -603,6 +621,7 @@ function sendTicketEmails(order) {
       "Je betaling is ontvangen. Je tickets zijn officieel bevestigd.\n\n" +
       "Bestelnummer: " + order.orderId + "\n" +
       ticketLines.join("\n") + "\n" +
+      practicalText +
       "Totaal: €" + order.total.toFixed(2).replace(".", ",") + "\n\n" +
       "Bewaar deze e-mail en toon je bestelnummer bij aankomst.\n\n" +
       "Rotaract Gaasbeek Pajottenland",
@@ -614,6 +633,7 @@ function sendTicketEmails(order) {
       '<div style="padding:18px;background:#FCE8F1;border-left:4px solid #D41367">' +
       "<strong>Bestelnummer: " + escapeHtml(order.orderId) + "</strong><br>" +
       ticketLines.map(escapeHtml).join("<br>") +
+      practicalHtml +
       "<br><strong>Totaal: €" +
       order.total.toFixed(2).replace(".", ",") +
       "</strong></div>" +
@@ -637,6 +657,7 @@ function sendTicketEmails(order) {
       "Naam: " + order.name + "\n" +
       "E-mail: " + order.email + "\n" +
       ticketLines.join("\n") + "\n" +
+      practicalText +
       "Totaal: €" + order.total.toFixed(2).replace(".", ","),
   });
 }
