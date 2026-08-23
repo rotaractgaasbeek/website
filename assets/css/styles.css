@@ -966,6 +966,12 @@ textarea {
   font-size: clamp(1.25rem, 2vw, 1.55rem);
 }
 
+.bbq-included__intro {
+  margin: -0.25rem 0 0;
+  color: var(--ink);
+  font-weight: 800;
+}
+
 .bbq-included__grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
