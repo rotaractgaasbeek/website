@@ -1,6 +1,7 @@
 const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
 const TICKET_SHEET_NAME = "Ticketbestellingen";
+const TAXI_INTEREST_SHEET_NAME = "Taxi Service interesse";
 const BBQ_CAPACITY = 120;
 const RAC_GP_BBQ_DATE_TEXT = "zondag 6 september 2026";
 const RAC_GP_BBQ_TIME_TEXT = "18u";
@@ -52,6 +53,7 @@ function setupRacGp() {
   const configuredSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
   ensureStatusColumn(configuredSpreadsheet);
   ensureTicketSheet(configuredSpreadsheet);
+  ensureTaxiInterestSheet(configuredSpreadsheet);
   console.log("RALLY_FORM_SECRET=" + secret);
   console.log("Google Sheet=" + spreadsheetUrl);
 }
@@ -92,6 +94,10 @@ function doPost(event) {
 
     if (data.action === "payment_completed") {
       return completeTicketPayment(data, spreadsheetId);
+    }
+
+    if (data.action === "taxi_interest") {
+      return registerTaxiInterest(data, spreadsheetId);
     }
 
     const registration = normalizeRegistration(data);
@@ -306,6 +312,198 @@ function sendParticipantConfirmation(registration, registrationId) {
       "</div>" +
       "<p>Je aanvraagnummer is <strong>" + escapeHtml(registrationId) + "</strong>.</p>" +
       '<p style="font-size:13px;color:#667085">Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden. We nemen zelf contact met je op.</p>' +
+      emailSignatureHtml(hasInlineLogo) +
+      "</div>",
+  };
+
+  if (hasInlineLogo) {
+    mailOptions.inlineImages = signatureImages;
+  }
+
+  MailApp.sendEmail(mailOptions);
+}
+
+function registerTaxiInterest(data, spreadsheetId) {
+  const interest = normalizeTaxiInterest(data);
+  const validationMessage = validateTaxiInterest(interest);
+
+  if (validationMessage) {
+    return jsonResponse({ ok: false, message: validationMessage });
+  }
+
+  const interestId =
+    "TAXI-" +
+    Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
+    "-" +
+    Utilities.getUuid().slice(0, 6).toUpperCase();
+  const receivedAt = new Date();
+  const lock = LockService.getScriptLock();
+  let sheet;
+  let rowNumber;
+
+  lock.waitLock(10000);
+  try {
+    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    ensureTaxiInterestSheet(spreadsheet);
+    sheet = spreadsheet.getSheetByName(TAXI_INTEREST_SHEET_NAME);
+
+    sheet.appendRow([
+      receivedAt,
+      interestId,
+      interest.name,
+      interest.email,
+      interest.phone,
+      "Wordt verzonden",
+      "Interesse ontvangen - info later bezorgen",
+    ]);
+
+    rowNumber = sheet.getLastRow();
+  } finally {
+    lock.releaseLock();
+  }
+
+  let emailSent = false;
+
+  try {
+    sendTaxiInterestOrganizerEmail(interest, interestId);
+    sendTaxiInterestConfirmation(interest, interestId);
+    emailSent = true;
+    sheet.getRange(rowNumber, 6).setValue("Ja");
+  } catch (mailError) {
+    console.error(mailError);
+    sheet.getRange(rowNumber, 6).setValue("Nee - controleer Apps Script");
+  }
+
+  return jsonResponse({
+    ok: true,
+    id: interestId,
+    emailSent: emailSent,
+  });
+}
+
+function normalizeTaxiInterest(data) {
+  return {
+    name: cleanValue(data.name, 120),
+    email: cleanValue(data.email, 180),
+    phone: cleanValue(data.phone, 80),
+  };
+}
+
+function validateTaxiInterest(interest) {
+  if (!interest.name || !interest.phone) {
+    return "Controleer je naam en telefoonnummer.";
+  }
+
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(interest.email)) {
+    return "Vul een geldig e-mailadres in.";
+  }
+
+  return "";
+}
+
+function ensureTaxiInterestSheet(spreadsheet) {
+  let sheet = spreadsheet.getSheetByName(TAXI_INTEREST_SHEET_NAME);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(TAXI_INTEREST_SHEET_NAME);
+  }
+
+  const headers = [
+    "Ontvangen op",
+    "Interessenummer",
+    "Naam",
+    "E-mail",
+    "Telefoonnummer",
+    "Bevestigingsmail verstuurd",
+    "Status",
+  ];
+  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+  sheet.setFrozenRows(1);
+  sheet.getRange(1, 1, 1, headers.length)
+    .setBackground("#D41367")
+    .setFontColor("#FFFFFF")
+    .setFontWeight("bold");
+  sheet.autoResizeColumns(1, headers.length);
+  return sheet;
+}
+
+function sendTaxiInterestOrganizerEmail(interest, interestId) {
+  const signatureImages = getSignatureImages();
+  const hasInlineLogo = Object.keys(signatureImages).length > 0;
+  const rows = [
+    ["Interessenummer", interestId],
+    ["Naam", interest.name],
+    ["E-mail", interest.email],
+    ["Telefoonnummer", interest.phone],
+    ["Event", "Taxi Service voor de jaarlijkse Rotary-bijeenkomst"],
+  ];
+
+  const plainText = rows.map(function (row) {
+    return row[0] + ": " + row[1];
+  }).join("\n");
+
+  const htmlRows = rows.map(function (row) {
+    return (
+      '<tr><th style="padding:10px;text-align:left;border-bottom:1px solid #ddd">' +
+      escapeHtml(row[0]) +
+      '</th><td style="padding:10px;border-bottom:1px solid #ddd">' +
+      escapeHtml(row[1]) +
+      "</td></tr>"
+    );
+  }).join("");
+
+  const mailOptions = {
+    to: RAC_GP_RECIPIENT,
+    replyTo: interest.email,
+    name: "Rotaract Gaasbeek Pajottenland",
+    subject: "Taxi Service - Nieuwe interesse van " + interest.name,
+    body: plainText,
+    htmlBody:
+      '<div style="font-family:Arial,sans-serif;color:#18212c">' +
+      '<h1 style="color:#d41367">Nieuwe interesse voor Taxi Service</h1>' +
+      '<p>Deze persoon wil graag meer informatie over vervoer van en naar de jaarlijkse Rotary-bijeenkomst.</p>' +
+      '<table style="width:100%;border-collapse:collapse">' +
+      htmlRows +
+      "</table>" +
+      emailSignatureHtml(hasInlineLogo) +
+      "</div>",
+  };
+
+  if (hasInlineLogo) {
+    mailOptions.inlineImages = signatureImages;
+  }
+
+  MailApp.sendEmail(mailOptions);
+}
+
+function sendTaxiInterestConfirmation(interest, interestId) {
+  const signatureImages = getSignatureImages();
+  const hasInlineLogo = Object.keys(signatureImages).length > 0;
+  const plainText =
+    "Beste " + interest.name + ",\n\n" +
+    "We hebben je interesse in de Taxi Service voor de jaarlijkse Rotary-bijeenkomst goed ontvangen.\n\n" +
+    "Dit is nog geen reservatie. Zodra de prijs, timing en praktische afspraken bekend zijn, nemen we opnieuw contact met je op.\n\n" +
+    "Je referentie is " + interestId + ".\n\n" +
+    "Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.\n\n" +
+    "Met vriendelijke groeten,\n" +
+    "Rotaract Gaasbeek Pajottenland\n" +
+    "rotaractgaasbeek@gmail.com\n" +
+    "www.rotaractgaasbeek.be";
+
+  const mailOptions = {
+    to: interest.email,
+    name: "Rotaract Gaasbeek Pajottenland",
+    subject: "We hebben je interesse in de Taxi Service ontvangen",
+    body: plainText,
+    htmlBody:
+      '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18212c;max-width:640px">' +
+      "<p>Beste " + escapeHtml(interest.name) + ",</p>" +
+      "<p>We hebben je interesse in de <strong>Taxi Service voor de jaarlijkse Rotary-bijeenkomst</strong> goed ontvangen.</p>" +
+      '<div style="padding:16px 18px;border-left:4px solid #D41367;background:#FCE8F1">' +
+      "<strong>Dit is nog geen reservatie.</strong><br>" +
+      "Zodra de prijs, timing en praktische afspraken bekend zijn, nemen we opnieuw contact met je op." +
+      "</div>" +
+      "<p>Je referentie is <strong>" + escapeHtml(interestId) + "</strong>.</p>" +
+      '<p style="font-size:13px;color:#667085">Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.</p>' +
       emailSignatureHtml(hasInlineLogo) +
       "</div>",
   };

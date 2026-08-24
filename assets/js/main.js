@@ -247,28 +247,49 @@ if (contactForm) {
 const interestForm = document.querySelector("[data-interest-form]");
 
 if (interestForm) {
+  const submitButton = interestForm.querySelector('button[type="submit"]');
+  const formStatus = interestForm.querySelector("[data-interest-status]");
+
   interestForm.addEventListener("submit", (event) => {
     event.preventDefault();
 
-    const formData = new FormData(interestForm);
-    const eventTitle = interestForm.dataset.interestTitle || "Event";
-    const name = String(formData.get("name") || "");
-    const email = String(formData.get("email") || "");
-    const phone = String(formData.get("phone") || "");
+    if (!interestForm.reportValidity()) {
+      return;
+    }
 
-    const bodyText = [
-      `Event: ${eventTitle}`,
-      `Naam: ${name}`,
-      `E-mail: ${email}`,
-      `Telefoonnummer: ${phone}`,
-      "",
-      "Ik heb interesse en ontvang graag meer informatie zodra de prijs en praktische details bekend zijn.",
-    ].join("\n");
+    submitButton.disabled = true;
+    submitButton.textContent = "Bezig met verzenden...";
+    formStatus.textContent = "";
+    formStatus.className = "form-status";
 
-    const mailto = new URL("mailto:rotaractgaasbeek@gmail.com");
-    mailto.searchParams.set("subject", `Interesse ${eventTitle}`);
-    mailto.searchParams.set("body", bodyText);
-    window.location.href = mailto.toString();
+    const payload = Object.fromEntries(new FormData(interestForm).entries());
+
+    fetch(interestForm.action, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    })
+      .then(async (response) => {
+        const result = await response.json().catch(() => ({}));
+
+        if (!response.ok || !result.ok) {
+          throw new Error(result.message || "Je interesse kon niet worden verzonden.");
+        }
+
+        interestForm.reset();
+        formStatus.textContent = result.emailSent
+          ? "Bedankt, je interesse is goed ontvangen. We sturen je ook een bevestiging per e-mail."
+          : "Bedankt, je interesse is goed ontvangen. We nemen later contact met je op zodra de details bekend zijn.";
+        submitButton.textContent = "Interesse ontvangen";
+      })
+      .catch((error) => {
+        formStatus.textContent =
+          error.message ||
+          "Je interesse kon niet worden verzonden. Probeer later opnieuw.";
+        formStatus.classList.add("form-status--error");
+        submitButton.disabled = false;
+        submitButton.textContent = "Opnieuw proberen";
+      });
   });
 }
 
