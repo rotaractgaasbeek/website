@@ -17,7 +17,7 @@ if (navToggle && navLinks) {
 }
 
 const currentPage = window.location.pathname.split("/").pop() || "index.html";
-const eventDetailPages = new Set(["rally.html", "openluchtcinema.html"]);
+const eventDetailPages = new Set(["rally.html", "openluchtcinema.html", "taxi-service.html"]);
 document.querySelectorAll(".nav__link").forEach((link) => {
   const href = link.getAttribute("href");
   if (href === currentPage || (href === "events.html" && eventDetailPages.has(currentPage))) {
@@ -239,6 +239,34 @@ if (contactForm) {
 
     const mailto = new URL("mailto:rotaractgaasbeek@gmail.com");
     mailto.searchParams.set("subject", subject);
+    mailto.searchParams.set("body", bodyText);
+    window.location.href = mailto.toString();
+  });
+}
+
+const interestForm = document.querySelector("[data-interest-form]");
+
+if (interestForm) {
+  interestForm.addEventListener("submit", (event) => {
+    event.preventDefault();
+
+    const formData = new FormData(interestForm);
+    const eventTitle = interestForm.dataset.interestTitle || "Event";
+    const name = String(formData.get("name") || "");
+    const email = String(formData.get("email") || "");
+    const phone = String(formData.get("phone") || "");
+
+    const bodyText = [
+      `Event: ${eventTitle}`,
+      `Naam: ${name}`,
+      `E-mail: ${email}`,
+      `Telefoonnummer: ${phone}`,
+      "",
+      "Ik heb interesse en ontvang graag meer informatie zodra de prijs en praktische details bekend zijn.",
+    ].join("\n");
+
+    const mailto = new URL("mailto:rotaractgaasbeek@gmail.com");
+    mailto.searchParams.set("subject", `Interesse ${eventTitle}`);
     mailto.searchParams.set("body", bodyText);
     window.location.href = mailto.toString();
   });

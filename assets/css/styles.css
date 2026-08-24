@@ -706,6 +706,10 @@ textarea {
   font-size: clamp(2.6rem, 7vw, 5.4rem);
 }
 
+.page-hero--taxi .page-hero__image img {
+  object-position: center 42%;
+}
+
 .rally-hero-meta {
   display: flex;
   flex-wrap: wrap;
@@ -1411,6 +1415,13 @@ textarea {
   display: grid;
   grid-template-columns: minmax(300px, 0.75fr) minmax(0, 1.25fr);
   gap: 1rem;
+  align-items: start;
+}
+
+.taxi-interest {
+  display: grid;
+  grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
   align-items: start;
 }
 
@@ -2173,6 +2184,7 @@ textarea {
   .club-info__layout,
   .calendar-grid,
   .contact-layout,
+  .taxi-interest,
   .rally-registration,
   .ticket-layout,
   .cinema-ticket-layout,
