@@ -73,6 +73,15 @@ const fixedCalendarItems = [
     location: "Sfeervolle locaties in de omgeving, met BBQ aan Gravenhof in Beersel",
     href: "rally.html",
   },
+  {
+    title: "Taxi Service voor Rotary Royal",
+    date: "2026-11-20",
+    label: "Opkomend event",
+    description: "Vervoer van en naar Rotary Royal, een feestdiner in Krekelhof Gooik.",
+    time: "Event om 19u",
+    location: "Krekelhof Gooik",
+    href: "taxi-service.html",
+  },
 ];
 
 let visibleCalendarDate = new Date(2026, 4, 1);

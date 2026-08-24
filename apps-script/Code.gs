@@ -1,7 +1,6 @@
 const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
 const TICKET_SHEET_NAME = "Ticketbestellingen";
-const TAXI_INTEREST_SHEET_NAME = "Taxi Service interesse";
 const BBQ_CAPACITY = 120;
 const RAC_GP_BBQ_DATE_TEXT = "zondag 6 september 2026";
 const RAC_GP_BBQ_TIME_TEXT = "18u";
@@ -53,7 +52,6 @@ function setupRacGp() {
   const configuredSpreadsheet = SpreadsheetApp.openById(spreadsheetId);
   ensureStatusColumn(configuredSpreadsheet);
   ensureTicketSheet(configuredSpreadsheet);
-  ensureTaxiInterestSheet(configuredSpreadsheet);
   console.log("RALLY_FORM_SECRET=" + secret);
   console.log("Google Sheet=" + spreadsheetUrl);
 }
@@ -94,10 +92,6 @@ function doPost(event) {
 
     if (data.action === "payment_completed") {
       return completeTicketPayment(data, spreadsheetId);
-    }
-
-    if (data.action === "taxi_interest") {
-      return registerTaxiInterest(data, spreadsheetId);
     }
 
     const registration = normalizeRegistration(data);
@@ -323,198 +317,6 @@ function sendParticipantConfirmation(registration, registrationId) {
   MailApp.sendEmail(mailOptions);
 }
 
-function registerTaxiInterest(data, spreadsheetId) {
-  const interest = normalizeTaxiInterest(data);
-  const validationMessage = validateTaxiInterest(interest);
-
-  if (validationMessage) {
-    return jsonResponse({ ok: false, message: validationMessage });
-  }
-
-  const interestId =
-    "TAXI-" +
-    Utilities.formatDate(new Date(), "Europe/Brussels", "yyyyMMdd-HHmmss") +
-    "-" +
-    Utilities.getUuid().slice(0, 6).toUpperCase();
-  const receivedAt = new Date();
-  const lock = LockService.getScriptLock();
-  let sheet;
-  let rowNumber;
-
-  lock.waitLock(10000);
-  try {
-    const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
-    ensureTaxiInterestSheet(spreadsheet);
-    sheet = spreadsheet.getSheetByName(TAXI_INTEREST_SHEET_NAME);
-
-    sheet.appendRow([
-      receivedAt,
-      interestId,
-      interest.name,
-      interest.email,
-      interest.phone,
-      "Wordt verzonden",
-      "Interesse ontvangen - info later bezorgen",
-    ]);
-
-    rowNumber = sheet.getLastRow();
-  } finally {
-    lock.releaseLock();
-  }
-
-  let emailSent = false;
-
-  try {
-    sendTaxiInterestOrganizerEmail(interest, interestId);
-    sendTaxiInterestConfirmation(interest, interestId);
-    emailSent = true;
-    sheet.getRange(rowNumber, 6).setValue("Ja");
-  } catch (mailError) {
-    console.error(mailError);
-    sheet.getRange(rowNumber, 6).setValue("Nee - controleer Apps Script");
-  }
-
-  return jsonResponse({
-    ok: true,
-    id: interestId,
-    emailSent: emailSent,
-  });
-}
-
-function normalizeTaxiInterest(data) {
-  return {
-    name: cleanValue(data.name, 120),
-    email: cleanValue(data.email, 180),
-    phone: cleanValue(data.phone, 80),
-  };
-}
-
-function validateTaxiInterest(interest) {
-  if (!interest.name || !interest.phone) {
-    return "Controleer je naam en telefoonnummer.";
-  }
-
-  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(interest.email)) {
-    return "Vul een geldig e-mailadres in.";
-  }
-
-  return "";
-}
-
-function ensureTaxiInterestSheet(spreadsheet) {
-  let sheet = spreadsheet.getSheetByName(TAXI_INTEREST_SHEET_NAME);
-  if (!sheet) {
-    sheet = spreadsheet.insertSheet(TAXI_INTEREST_SHEET_NAME);
-  }
-
-  const headers = [
-    "Ontvangen op",
-    "Interessenummer",
-    "Naam",
-    "E-mail",
-    "Telefoonnummer",
-    "Bevestigingsmail verstuurd",
-    "Status",
-  ];
-  sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
-  sheet.setFrozenRows(1);
-  sheet.getRange(1, 1, 1, headers.length)
-    .setBackground("#D41367")
-    .setFontColor("#FFFFFF")
-    .setFontWeight("bold");
-  sheet.autoResizeColumns(1, headers.length);
-  return sheet;
-}
-
-function sendTaxiInterestOrganizerEmail(interest, interestId) {
-  const signatureImages = getSignatureImages();
-  const hasInlineLogo = Object.keys(signatureImages).length > 0;
-  const rows = [
-    ["Interessenummer", interestId],
-    ["Naam", interest.name],
-    ["E-mail", interest.email],
-    ["Telefoonnummer", interest.phone],
-    ["Event", "Taxi Service voor de jaarlijkse Rotary-bijeenkomst"],
-  ];
-
-  const plainText = rows.map(function (row) {
-    return row[0] + ": " + row[1];
-  }).join("\n");
-
-  const htmlRows = rows.map(function (row) {
-    return (
-      '<tr><th style="padding:10px;text-align:left;border-bottom:1px solid #ddd">' +
-      escapeHtml(row[0]) +
-      '</th><td style="padding:10px;border-bottom:1px solid #ddd">' +
-      escapeHtml(row[1]) +
-      "</td></tr>"
-    );
-  }).join("");
-
-  const mailOptions = {
-    to: RAC_GP_RECIPIENT,
-    replyTo: interest.email,
-    name: "Rotaract Gaasbeek Pajottenland",
-    subject: "Taxi Service - Nieuwe interesse van " + interest.name,
-    body: plainText,
-    htmlBody:
-      '<div style="font-family:Arial,sans-serif;color:#18212c">' +
-      '<h1 style="color:#d41367">Nieuwe interesse voor Taxi Service</h1>' +
-      '<p>Deze persoon wil graag meer informatie over vervoer van en naar de jaarlijkse Rotary-bijeenkomst.</p>' +
-      '<table style="width:100%;border-collapse:collapse">' +
-      htmlRows +
-      "</table>" +
-      emailSignatureHtml(hasInlineLogo) +
-      "</div>",
-  };
-
-  if (hasInlineLogo) {
-    mailOptions.inlineImages = signatureImages;
-  }
-
-  MailApp.sendEmail(mailOptions);
-}
-
-function sendTaxiInterestConfirmation(interest, interestId) {
-  const signatureImages = getSignatureImages();
-  const hasInlineLogo = Object.keys(signatureImages).length > 0;
-  const plainText =
-    "Beste " + interest.name + ",\n\n" +
-    "We hebben je interesse in de Taxi Service voor de jaarlijkse Rotary-bijeenkomst goed ontvangen.\n\n" +
-    "Dit is nog geen reservatie. Zodra de prijs, timing en praktische afspraken bekend zijn, nemen we opnieuw contact met je op.\n\n" +
-    "Je referentie is " + interestId + ".\n\n" +
-    "Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.\n\n" +
-    "Met vriendelijke groeten,\n" +
-    "Rotaract Gaasbeek Pajottenland\n" +
-    "rotaractgaasbeek@gmail.com\n" +
-    "www.rotaractgaasbeek.be";
-
-  const mailOptions = {
-    to: interest.email,
-    name: "Rotaract Gaasbeek Pajottenland",
-    subject: "We hebben je interesse in de Taxi Service ontvangen",
-    body: plainText,
-    htmlBody:
-      '<div style="font-family:Arial,sans-serif;line-height:1.6;color:#18212c;max-width:640px">' +
-      "<p>Beste " + escapeHtml(interest.name) + ",</p>" +
-      "<p>We hebben je interesse in de <strong>Taxi Service voor de jaarlijkse Rotary-bijeenkomst</strong> goed ontvangen.</p>" +
-      '<div style="padding:16px 18px;border-left:4px solid #D41367;background:#FCE8F1">' +
-      "<strong>Dit is nog geen reservatie.</strong><br>" +
-      "Zodra de prijs, timing en praktische afspraken bekend zijn, nemen we opnieuw contact met je op." +
-      "</div>" +
-      "<p>Je referentie is <strong>" + escapeHtml(interestId) + "</strong>.</p>" +
-      '<p style="font-size:13px;color:#667085">Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.</p>' +
-      emailSignatureHtml(hasInlineLogo) +
-      "</div>",
-  };
-
-  if (hasInlineLogo) {
-    mailOptions.inlineImages = signatureImages;
-  }
-
-  MailApp.sendEmail(mailOptions);
-}
-
 function reserveTickets(data, spreadsheetId) {
   const order = {
     event: cleanValue(data.event, 80),
@@ -522,22 +324,17 @@ function reserveTickets(data, spreadsheetId) {
     email: cleanValue(data.email, 180),
     phone: cleanValue(data.phone, 80),
     bbqQuantity: positiveInteger(data.bbqQuantity, 120),
-    adultQuantity: positiveInteger(data.adultQuantity, 500),
-    childQuantity: positiveInteger(data.childQuantity, 500),
   };
 
   if (
     !order.name ||
     !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(order.email) ||
-    order.bbqQuantity + order.adultQuantity + order.childQuantity < 1
+    order.bbqQuantity < 1
   ) {
     return jsonResponse({ ok: false, message: "Controleer de ticketgegevens." });
   }
 
-  const totalCents =
-    order.bbqQuantity * 10000 +
-    order.adultQuantity * 1500 +
-    order.childQuantity * 1000;
+  const totalCents = order.bbqQuantity * 10000;
   let orderId;
   const lock = LockService.getScriptLock();
 
@@ -572,8 +369,6 @@ function reserveTickets(data, spreadsheetId) {
       order.email,
       order.phone,
       order.bbqQuantity,
-      order.adultQuantity,
-      order.childQuantity,
       totalCents / 100,
       "Gereserveerd",
       "",
@@ -598,9 +393,9 @@ function updateTicketOrder(data, spreadsheetId, status) {
     return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
   }
 
-  sheet.getRange(row, 11).setValue(status);
+  sheet.getRange(row, 9).setValue(status);
   if (data.stripeSessionId) {
-    sheet.getRange(row, 12).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 10).setValue(cleanValue(data.stripeSessionId, 180));
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
@@ -624,15 +419,15 @@ function completeTicketPayment(data, spreadsheetId) {
       return jsonResponse({ ok: false, message: "Bestelling niet gevonden." });
     }
 
-    if (sheet.getRange(row, 11).getValue() === "Betaald") {
+    if (sheet.getRange(row, 9).getValue() === "Betaald") {
       return jsonResponse({ ok: true, orderId: orderId, duplicate: true });
     }
 
-    sheet.getRange(row, 11).setValue("Betaald");
-    sheet.getRange(row, 12).setValue(cleanValue(data.stripeSessionId, 180));
-    sheet.getRange(row, 13).setValue(cleanValue(data.paymentIntentId, 180));
+    sheet.getRange(row, 9).setValue("Betaald");
+    sheet.getRange(row, 10).setValue(cleanValue(data.stripeSessionId, 180));
+    sheet.getRange(row, 11).setValue(cleanValue(data.paymentIntentId, 180));
 
-    const values = sheet.getRange(row, 1, 1, 14).getValues()[0];
+    const values = sheet.getRange(row, 1, 1, 12).getValues()[0];
     order = ticketOrderFromRow(values);
   } finally {
     lock.releaseLock();
@@ -640,10 +435,10 @@ function completeTicketPayment(data, spreadsheetId) {
 
   try {
     sendTicketEmails(order);
-    sheet.getRange(row, 14).setValue("Ja");
+    sheet.getRange(row, 12).setValue("Ja");
   } catch (error) {
     console.error(error);
-    sheet.getRange(row, 14).setValue("Nee - controleer Apps Script");
+    sheet.getRange(row, 12).setValue("Nee - controleer Apps Script");
   }
 
   return jsonResponse({ ok: true, orderId: orderId });
@@ -655,12 +450,9 @@ function ensureTicketSheet(spreadsheet) {
     sheet = spreadsheet.insertSheet(TICKET_SHEET_NAME);
   }
 
-  if (
-    sheet.getLastColumn() >= 12 &&
-    sheet.getRange(1, 12).getValue() === "Reservatie verloopt"
-  ) {
-    sheet.deleteColumn(12);
-  }
+  deleteHeaderColumn(sheet, "Reservatie verloopt");
+  deleteHeaderColumn(sheet, "Volwassenen");
+  deleteHeaderColumn(sheet, "Kinderen t.e.m. 12 jaar");
 
   const headers = [
     "Aangemaakt op",
@@ -670,8 +462,6 @@ function ensureTicketSheet(spreadsheet) {
     "E-mail",
     "Telefoonnummer",
     "BBQ-tickets",
-    "Volwassenen",
-    "Kinderen t.e.m. 12 jaar",
     "Totaal euro",
     "Status",
     "Stripe Checkout Session",
@@ -688,23 +478,36 @@ function ensureTicketSheet(spreadsheet) {
   return sheet;
 }
 
+function deleteHeaderColumn(sheet, headerName) {
+  const lastColumn = sheet.getLastColumn();
+  if (lastColumn < 1) {
+    return;
+  }
+
+  const headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+  const index = headers.indexOf(headerName);
+  if (index !== -1) {
+    sheet.deleteColumn(index + 1);
+  }
+}
+
 function expireOldReservations(sheet) {
   if (sheet.getLastRow() < 2) {
     return;
   }
 
-  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 14).getValues();
+  const rows = sheet.getRange(2, 1, sheet.getLastRow() - 1, 12).getValues();
   const now = new Date();
 
   rows.forEach(function (row, index) {
-    const status = row[10];
+    const status = row[8];
     const createdAt = row[0];
     if (
       (status === "Gereserveerd" || status === "Checkout gestart") &&
       createdAt instanceof Date &&
       now.getTime() - createdAt.getTime() > 35 * 60 * 1000
     ) {
-      sheet.getRange(index + 2, 11).setValue("Verlopen");
+      sheet.getRange(index + 2, 9).setValue("Verlopen");
     }
   });
 }
@@ -715,10 +518,10 @@ function countReservedBbqTickets(sheet) {
   }
 
   return sheet
-    .getRange(2, 1, sheet.getLastRow() - 1, 14)
+    .getRange(2, 1, sheet.getLastRow() - 1, 12)
     .getValues()
     .reduce(function (total, row) {
-      const status = row[10];
+      const status = row[8];
       return status === "Gereserveerd" ||
         status === "Checkout gestart" ||
         status === "Betaald"
@@ -772,35 +575,19 @@ function ticketOrderFromRow(row) {
     email: String(row[4]),
     phone: String(row[5] || ""),
     bbqQuantity: Number(row[6] || 0),
-    adultQuantity: Number(row[7] || 0),
-    childQuantity: Number(row[8] || 0),
-    total: Number(row[9] || 0),
+    total: Number(row[7] || 0),
   };
 }
 
 function sendTicketEmails(order) {
   const signatureImages = getSignatureImages();
   const hasInlineLogo = Object.keys(signatureImages).length > 0;
-  const ticketLines = [];
-
-  if (order.bbqQuantity) {
-    ticketLines.push(order.bbqQuantity + " × RAC GP BBQ");
-  }
-  if (order.adultQuantity) {
-    ticketLines.push(order.adultQuantity + " × Openluchtcinema volwassene");
-  }
-  if (order.childQuantity) {
-    ticketLines.push(
-      order.childQuantity + " × Openluchtcinema kind t.e.m. 12 jaar",
-    );
-  }
+  const ticketLines = [order.bbqQuantity + " × RAC GP BBQ"];
 
   const practicalLines = [];
-  if (order.bbqQuantity) {
-    practicalLines.push("Datum: " + RAC_GP_BBQ_DATE_TEXT);
-    practicalLines.push("Start BBQ: " + RAC_GP_BBQ_TIME_TEXT);
-    practicalLines.push("Locatie: " + RAC_GP_BBQ_LOCATION_TEXT);
-  }
+  practicalLines.push("Datum: " + RAC_GP_BBQ_DATE_TEXT);
+  practicalLines.push("Start BBQ: " + RAC_GP_BBQ_TIME_TEXT);
+  practicalLines.push("Locatie: " + RAC_GP_BBQ_LOCATION_TEXT);
   const practicalText = practicalLines.length
     ? "\nPraktisch:\n" + practicalLines.join("\n") + "\n"
     : "";

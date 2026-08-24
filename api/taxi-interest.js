@@ -19,8 +19,8 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ ok: false, message: "Methode niet toegestaan." });
   }
 
-  const webAppUrl = process.env.GOOGLE_APPS_SCRIPT_URL;
-  const formSecret = process.env.RALLY_FORM_SECRET;
+  const webAppUrl = process.env.TAXI_GOOGLE_APPS_SCRIPT_URL;
+  const formSecret = process.env.TAXI_FORM_SECRET;
 
   if (!webAppUrl || !formSecret) {
     return response.status(503).json({
