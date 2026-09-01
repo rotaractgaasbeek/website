@@ -81,7 +81,7 @@
             "price": "230",
             "priceCurrency": "EUR",
             "url": "https://www.rotaractgaasbeek.be/rally.html",
-            "availability": "https://schema.org/SoldOut",
+            "availability": "https://schema.org/InStock",
             "validFrom": "2026-05-31T00:00:00+02:00"
           },
           {
@@ -90,7 +90,7 @@
             "price": "210",
             "priceCurrency": "EUR",
             "url": "https://www.rotaractgaasbeek.be/rally.html",
-            "availability": "https://schema.org/SoldOut",
+            "availability": "https://schema.org/InStock",
             "validFrom": "2026-05-31T00:00:00+02:00"
           },
           {
@@ -150,8 +150,12 @@
               <span>BBQ aan Gravenhof Beersel</span>
             </div>
             <div class="rally-closed-notice" role="status">
-              <strong>Ticketverkoop afgerond</strong>
-              <span>Rallyaanvragen en BBQ-ticketbestellingen kunnen niet meer via de website worden verstuurd.</span>
+              <strong>BBQ-ticketverkoop afgerond</strong>
+              <span>Rallyaanvragen kunnen nog via het formulier worden doorgestuurd.</span>
+            </div>
+            <div class="hero__actions">
+              <a class="button button--primary" href="#inschrijven">Rally aanvragen</a>
+              <span class="button button--secondary button--disabled" aria-disabled="true">BBQ-ticketverkoop afgerond</span>
             </div>
           </div>
         </div>
@@ -201,9 +205,9 @@
               <dl>
                 <div><dt>Bestuurder</dt><dd>€230</dd></div>
                 <div><dt>Bijrijder</dt><dd>€210</dd></div>
-                <div><dt>Goedkeuring</dt><dd>Afgesloten</dd></div>
+                <div><dt>Goedkeuring</dt><dd>Na aanvraag</dd></div>
               </dl>
-              <span class="button button--primary button--disabled" aria-disabled="true">Aanvragen afgesloten</span>
+              <a class="button button--primary" href="#inschrijven">Rally aanvragen</a>
             </article>
             <article class="rally-choice-card">
               <p class="rally-choice-card__tag">BBQ</p>
@@ -284,20 +288,66 @@
           <div class="section-head section-head--split rally-forms-head">
             <div>
               <p class="eyebrow">Inschrijven</p>
-              <h2 class="section-title">Rallyaanvragen en BBQ-ticketverkoop zijn afgesloten.</h2>
+              <h2 class="section-title">Rallyaanvraag.</h2>
             </div>
-            <p>De ticketverkoop is afgerond. Er kunnen geen nieuwe gegevens, aanvragen of BBQ-bestellingen meer via de website worden doorgestuurd.</p>
+            <p>Rallyaanvragen kunnen opnieuw via het formulier worden doorgestuurd. De BBQ-ticketverkoop is afgerond.</p>
           </div>
           <div class="rally-ticket-grid">
-            <section class="form-panel form-panel--closed rally-application-panel" aria-label="Rallyaanvragen afgesloten">
-              <p class="rally-choice-card__tag">Afgesloten</p>
+            <section class="form-panel rally-application-panel" aria-label="Aanvraagformulier RAC GP">
               <h2>Rallyaanvraag</h2>
-              <p class="form-intro">De mogelijkheid om gegevens voor de rally door te sturen is afgesloten. Er kunnen geen nieuwe aanvragen meer worden verstuurd.</p>
-              <div class="closed-summary">
-                <div><strong>Volledige rallydag</strong><span>Afgesloten</span></div>
-                <div><strong>Bestuurder</strong><span>€230</span></div>
-                <div><strong>Bijrijder</strong><span>€210</span></div>
-              </div>
+              <p class="form-intro">Vul je gegevens en wagen in. Het aantal personen is altijd inclusief de bestuurder. Pas na goedkeuring en betaling is de deelname officieel.</p>
+              <form class="form-grid" action="/api/rally-registration" method="POST" data-rally-form>
+                <input class="form-honeypot" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+                <input type="hidden" name="Deelname" value="Volledige rally met wagen">
+
+                <div class="field">
+                  <label for="rally-name">Naam en voornaam</label>
+                  <input id="rally-name" name="Naam" type="text" autocomplete="name" required>
+                </div>
+                <div class="field">
+                  <label for="rally-email">E-mailadres</label>
+                  <input id="rally-email" name="email" type="email" autocomplete="email" required>
+                </div>
+                <div class="field">
+                  <label for="rally-phone">Telefoonnummer</label>
+                  <input id="rally-phone" name="Telefoonnummer" type="tel" autocomplete="tel" required>
+                </div>
+                <div class="field">
+                  <label for="rally-car">Wagen: merk en model</label>
+                  <input id="rally-car" name="Wagen" type="text" placeholder="Bijvoorbeeld Volvo P1800" required data-car-field>
+                </div>
+                <div class="field">
+                  <label for="rally-year">Bouwjaar wagen</label>
+                  <input id="rally-year" name="Bouwjaar wagen" type="number" min="1900" max="2026" inputmode="numeric" required data-car-field>
+                </div>
+                <div class="field">
+                  <label for="rally-plate">Nummerplaat wagen</label>
+                  <input id="rally-plate" name="Nummerplaat wagen" type="text" autocomplete="off" required data-car-field>
+                </div>
+                <div class="field">
+                  <label for="rally-people">Aantal personen inclusief bestuurder</label>
+                  <input id="rally-people" name="Aantal personen inclusief bestuurder" type="number" min="1" max="12" value="1" inputmode="numeric" required>
+                </div>
+                <div class="field">
+                  <label for="rally-diet">Allergieën of dieetwensen</label>
+                  <input id="rally-diet" name="Allergieën of dieetwensen" type="text" placeholder="Optioneel">
+                </div>
+                <div class="field field--full">
+                  <label for="rally-message">Opmerkingen</label>
+                  <textarea id="rally-message" name="Opmerkingen" placeholder="Optioneel"></textarea>
+                </div>
+                <div class="field field--full">
+                  <label class="consent-field">
+                    <input type="checkbox" name="Akkoord gegevensverwerking" value="Ja" required>
+                    <span>Ik ga ermee akkoord dat mijn gegevens worden gebruikt om mijn deelnameaanvraag voor RAC GP te verwerken.</span>
+                  </label>
+                </div>
+                <div class="field field--full form-actions">
+                  <button class="button button--primary" type="submit">Aanvraag verzenden</button>
+                  <p class="form-note">Na beoordeling nemen we via e-mail contact op over goedkeuring en betaling.</p>
+                  <p class="form-status" role="status" aria-live="polite" data-form-status></p>
+                </div>
+              </form>
             </section>
 
             <section class="ticket-panel ticket-panel--closed rally-bbq-panel" id="bbq-tickets" aria-label="BBQ-ticketverkoop afgerond">

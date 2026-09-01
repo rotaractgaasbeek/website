@@ -13,7 +13,7 @@ const parseBody = (body) => {
   }
 };
 
-const RALLY_REGISTRATION_CLOSED = true;
+const RALLY_REGISTRATION_CLOSED = false;
 
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
