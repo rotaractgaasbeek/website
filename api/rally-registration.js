@@ -13,10 +13,19 @@ const parseBody = (body) => {
   }
 };
 
+const RALLY_REGISTRATION_CLOSED = true;
+
 module.exports = async function handler(request, response) {
   if (request.method !== "POST") {
     response.setHeader("Allow", "POST");
     return response.status(405).json({ ok: false, message: "Methode niet toegestaan." });
+  }
+
+  if (RALLY_REGISTRATION_CLOSED) {
+    return response.status(410).json({
+      ok: false,
+      message: "De rallyaanvragen zijn afgesloten.",
+    });
   }
 
   const webAppUrl = process.env.GOOGLE_APPS_SCRIPT_URL;

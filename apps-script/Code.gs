@@ -2,6 +2,8 @@ const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
 const TICKET_SHEET_NAME = "Ticketbestellingen";
 const BBQ_CAPACITY = 120;
+const RAC_GP_REGISTRATION_CLOSED = true;
+const RAC_GP_BBQ_TICKET_SALES_CLOSED = true;
 const RAC_GP_BBQ_DATE_TEXT = "zondag 6 september 2026";
 const RAC_GP_BBQ_TIME_TEXT = "18u";
 const RAC_GP_BBQ_LOCATION_TEXT = "Gravenhof, Beersel";
@@ -75,6 +77,13 @@ function doPost(event) {
     }
 
     if (data.action === "reserve_tickets") {
+      if (RAC_GP_BBQ_TICKET_SALES_CLOSED) {
+        return jsonResponse({
+          ok: false,
+          message: "De BBQ-ticketverkoop voor RAC GP is afgerond.",
+        });
+      }
+
       return reserveTickets(data, spreadsheetId);
     }
 
@@ -92,6 +101,13 @@ function doPost(event) {
 
     if (data.action === "payment_completed") {
       return completeTicketPayment(data, spreadsheetId);
+    }
+
+    if (RAC_GP_REGISTRATION_CLOSED) {
+      return jsonResponse({
+        ok: false,
+        message: "De rallyaanvragen zijn afgesloten.",
+      });
     }
 
     const registration = normalizeRegistration(data);

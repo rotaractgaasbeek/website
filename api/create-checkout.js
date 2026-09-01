@@ -58,13 +58,6 @@ module.exports = async function handler(request, response) {
     return response.status(405).json({ ok: false, message: "Methode niet toegestaan." });
   }
 
-  if (!process.env.STRIPE_SECRET_KEY) {
-    return response.status(503).json({
-      ok: false,
-      message: "Online betalen is nog niet volledig geconfigureerd.",
-    });
-  }
-
   const body =
     typeof request.body === "string" ? JSON.parse(request.body || "{}") : request.body || {};
   const eventType = clean(body.event, 30);
@@ -73,21 +66,35 @@ module.exports = async function handler(request, response) {
   const phone = clean(body.phone, 80);
   const paymentMethod = clean(body.paymentMethod, 30) || "bancontact";
 
-  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-    return response.status(400).json({
-      ok: false,
-      message: "Vul je naam en een geldig e-mailadres in.",
-    });
-  }
-
   if (eventType !== "bbq" && eventType !== "cinema") {
     return response.status(400).json({ ok: false, message: "Onbekend evenement." });
+  }
+
+  if (eventType === "bbq") {
+    return response.status(410).json({
+      ok: false,
+      message: "De BBQ-ticketverkoop voor RAC GP is afgerond.",
+    });
   }
 
   if (eventType === "cinema") {
     return response.status(410).json({
       ok: false,
       message: "De ticketverkoop voor de openluchtcinema is afgesloten.",
+    });
+  }
+
+  if (!process.env.STRIPE_SECRET_KEY) {
+    return response.status(503).json({
+      ok: false,
+      message: "Online betalen is nog niet volledig geconfigureerd.",
+    });
+  }
+
+  if (!name || !email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    return response.status(400).json({
+      ok: false,
+      message: "Vul je naam en een geldig e-mailadres in.",
     });
   }
 

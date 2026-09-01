@@ -245,6 +245,16 @@ textarea {
   box-shadow: 0 12px 30px rgba(24, 33, 44, 0.09);
 }
 
+.button--disabled,
+.button--disabled:hover {
+  color: #596273;
+  background: #E9EDF2;
+  border-color: var(--line);
+  box-shadow: none;
+  cursor: default;
+  transform: none;
+}
+
 .section {
   padding: clamp(3rem, 7vw, 6.5rem) 0;
 }
@@ -889,6 +899,28 @@ textarea {
   justify-self: start;
 }
 
+.rally-closed-notice {
+  display: grid;
+  gap: 0.25rem;
+  max-width: 38rem;
+  padding: 1rem;
+  border: 1px solid rgba(255, 255, 255, 0.28);
+  border-left: 5px solid var(--cranberry);
+  border-radius: var(--radius);
+  color: var(--paper);
+  background: rgba(17, 24, 32, 0.52);
+  backdrop-filter: blur(12px);
+}
+
+.rally-closed-notice strong {
+  font-size: clamp(1.15rem, 2vw, 1.35rem);
+  line-height: 1.1;
+}
+
+.rally-closed-notice span {
+  color: rgba(255, 255, 255, 0.84);
+}
+
 .rally-info-grid {
   grid-template-columns: minmax(0, 1.15fr) minmax(300px, 0.85fr);
 }
@@ -931,6 +963,42 @@ textarea {
 
 .rally-bbq-panel {
   border-top-color: var(--blue);
+}
+
+.form-panel--closed,
+.ticket-panel--closed {
+  align-content: start;
+  border-color: #D8DEE7;
+}
+
+.form-panel--closed {
+  display: grid;
+  gap: 1rem;
+}
+
+.closed-summary {
+  display: grid;
+  gap: 0.55rem;
+  margin-top: 0.35rem;
+}
+
+.closed-summary div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.55rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.closed-summary strong {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.closed-summary span {
+  color: var(--ink);
+  font-weight: 900;
+  text-align: right;
 }
 
 .rally-bbq-panel .ticket-highlights {
@@ -1089,6 +1157,11 @@ textarea {
 .tag--gold {
   color: #765000;
   background: #FFF3D7;
+}
+
+.tag--closed {
+  color: #7F1D1D;
+  background: #FEE2E2;
 }
 
 .tag--muted {
