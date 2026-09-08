@@ -2418,3 +2418,41 @@ textarea {
     border-right: 0;
   }
 }
+
+/* First photo selection for the completed RAC GP 2026. */
+.rally-gallery {
+  columns: 3;
+  column-gap: 1.25rem;
+}
+
+.rally-gallery__item {
+  break-inside: avoid;
+  margin: 0 0 1.25rem;
+  overflow: hidden;
+  border-radius: var(--radius);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.rally-gallery__item a {
+  display: block;
+}
+
+.rally-gallery__item a:focus-visible {
+  outline: 4px solid var(--cranberry);
+  outline-offset: -4px;
+}
+
+.rally-gallery__item img {
+  width: 100%;
+  height: auto;
+}
+
+
+@media (max-width: 900px) {
+  .rally-gallery { columns: 2; }
+}
+
+@media (max-width: 600px) {
+  .rally-gallery { columns: 1; }
+}
