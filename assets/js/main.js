@@ -114,7 +114,7 @@ function getCalendarItems(year, month) {
       date: `${year}-${String(month + 1).padStart(2, "0")}-${String(thirdFriday).padStart(2, "0")}`,
       description: "Clubwerking, projectupdates en nieuwe plannen.",
       time: "20u",
-      location: "Steenpoel Golf Club",
+      location: "Locatie wordt meegedeeld",
     },
   ];
 
