@@ -84,7 +84,8 @@ const fixedCalendarItems = [
   },
 ];
 
-let visibleCalendarDate = new Date(2026, 4, 1);
+const today = new Date();
+let visibleCalendarDate = new Date(today.getFullYear(), today.getMonth(), 1);
 
 function getThirdFriday(year, month) {
   let fridayCount = 0;
@@ -246,7 +247,7 @@ if (contactForm) {
       message,
     ].join("\n");
 
-    const mailto = new URL("mailto:rotaractgaasbeek@gmail.com");
+    const mailto = new URL("mailto:info@rotaractgaasbeek.be");
     mailto.searchParams.set("subject", subject);
     mailto.searchParams.set("body", bodyText);
     window.location.href = mailto.toString();

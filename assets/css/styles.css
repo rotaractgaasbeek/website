@@ -2016,6 +2016,34 @@ textarea {
   gap: 1rem;
 }
 
+.team-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.team-photo-card {
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.team-photo-card img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 4.35;
+  object-fit: cover;
+  object-position: top;
+}
+
+.team-photo-card figcaption {
+  display: none;
+}
+
 .gallery-grid figure {
   margin: 0;
   border-radius: var(--radius);
@@ -2386,6 +2414,10 @@ textarea {
   .gallery-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .team-photo-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -2457,7 +2489,8 @@ textarea {
   .story-media__row,
   .form-grid,
   .ticket-quantities,
-  .gallery-grid {
+  .gallery-grid,
+  .team-photo-grid {
     grid-template-columns: 1fr;
   }
 
@@ -2481,6 +2514,10 @@ textarea {
 
   .gallery-grid figure:first-child {
     grid-row: auto;
+  }
+
+  .team-photo-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .ticket-highlights {

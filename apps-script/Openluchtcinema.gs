@@ -1,4 +1,4 @@
-const CINEMA_RECIPIENT = "rotaractgaasbeek@gmail.com";
+const CINEMA_RECIPIENT = "info@rotaractgaasbeek.be";
 const CINEMA_SHEET_NAME = "Ticketbestellingen";
 const CINEMA_AUTOMATIC_PROCESSING_ENABLED = false;
 const CINEMA_BLOCKED_EMAILS = ["lievemalfliet@telenet.be"];
@@ -557,7 +557,7 @@ function cinemaEmailSignatureHtml(hasInlineLogo) {
       ? '<img src="cid:rotaractLogo" alt="Rotaract" style="display:block;width:220px;max-width:100%;height:auto;margin-bottom:12px">'
       : "") +
     "<strong>Rotaract Gaasbeek Pajottenland</strong><br>" +
-    '<a href="mailto:rotaractgaasbeek@gmail.com">rotaractgaasbeek@gmail.com</a><br>' +
+    '<a href="mailto:info@rotaractgaasbeek.be">info@rotaractgaasbeek.be</a><br>' +
     '<a href="https://www.rotaractgaasbeek.be/">www.rotaractgaasbeek.be</a>' +
     "</div>"
   );

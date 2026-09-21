@@ -1,4 +1,4 @@
-const RAC_GP_RECIPIENT = "rotaractgaasbeek@gmail.com";
+const RAC_GP_RECIPIENT = "info@rotaractgaasbeek.be";
 const RAC_GP_SHEET_NAME = "Inschrijvingen";
 const TICKET_SHEET_NAME = "Ticketbestellingen";
 const BBQ_CAPACITY = 120;
@@ -299,7 +299,7 @@ function sendParticipantConfirmation(registration, registrationId) {
     "Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.\n\n" +
     "Met vriendelijke groeten,\n" +
     "Rotaract Gaasbeek Pajottenland\n" +
-    "rotaractgaasbeek@gmail.com\n" +
+    "info@rotaractgaasbeek.be\n" +
     "www.rotaractgaasbeek.be";
 
   const reviewText = registration.participation === "Enkel BBQ"
@@ -708,7 +708,7 @@ function emailSignatureHtml(hasInlineLogo) {
     '<img src="' + logoSource + '" alt="Rotaract" width="220" style="display:block;max-width:220px;height:auto;margin-bottom:12px">' +
     '<strong style="color:#D41367">Rotaract Gaasbeek Pajottenland</strong><br>' +
     '<span style="font-size:14px;color:#667085">Jonge mensen, lokale impact en vriendschap in het Pajottenland.</span><br>' +
-    '<a href="mailto:rotaractgaasbeek@gmail.com" style="color:#D41367">rotaractgaasbeek@gmail.com</a><br>' +
+    '<a href="mailto:info@rotaractgaasbeek.be" style="color:#D41367">info@rotaractgaasbeek.be</a><br>' +
     '<a href="https://www.rotaractgaasbeek.be/" style="color:#D41367">www.rotaractgaasbeek.be</a>' +
     "</div>"
   );

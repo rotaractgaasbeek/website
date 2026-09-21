@@ -1,4 +1,4 @@
-const TAXI_RECIPIENT = "rotaractgaasbeek@gmail.com";
+const TAXI_RECIPIENT = "info@rotaractgaasbeek.be";
 const TAXI_SHEET_NAME = "Interesses";
 const TAXI_EVENT_NAME = "Rotary Royal";
 const TAXI_EVENT_DATE = "vrijdag 20 november 2026";
@@ -246,7 +246,7 @@ function sendParticipantConfirmation(interest, interestId) {
     "Dit is een automatisch verstuurd bericht. Je hoeft hier niet op te antwoorden.\n\n" +
     "Met vriendelijke groeten,\n" +
     "Rotaract Gaasbeek Pajottenland\n" +
-    "rotaractgaasbeek@gmail.com\n" +
+    "info@rotaractgaasbeek.be\n" +
     "www.rotaractgaasbeek.be";
 
   const mailOptions = {
@@ -301,7 +301,7 @@ function emailSignatureHtml(hasInlineLogo) {
     '<img src="' + logoSource + '" alt="Rotaract" width="220" style="display:block;max-width:220px;height:auto;margin-bottom:12px">' +
     '<strong style="color:#D41367">Rotaract Gaasbeek Pajottenland</strong><br>' +
     '<span style="font-size:14px;color:#667085">Jonge mensen, lokale impact en vriendschap in het Pajottenland.</span><br>' +
-    '<a href="mailto:rotaractgaasbeek@gmail.com" style="color:#D41367">rotaractgaasbeek@gmail.com</a><br>' +
+    '<a href="mailto:info@rotaractgaasbeek.be" style="color:#D41367">info@rotaractgaasbeek.be</a><br>' +
     '<a href="https://www.rotaractgaasbeek.be/" style="color:#D41367">www.rotaractgaasbeek.be</a>' +
     "</div>"
   );
