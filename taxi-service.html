@@ -28,7 +28,7 @@
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20260928-taxi">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20260928-taxi-terms">
     <script>
       window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
     </script>
@@ -194,8 +194,18 @@
                 <label for="taxi-notes">Praktische opmerkingen (optioneel)</label>
                 <textarea id="taxi-notes" name="notes" maxlength="1500" placeholder="Bijvoorbeeld een busnummer, kinderzitje of aanwijzing voor de chauffeur."></textarea>
               </div>
-              <div class="field field--full">
-                <label class="taxi-consent" for="taxi-consent"><input id="taxi-consent" name="consent" type="checkbox" value="yes" required><span>Ik schrijf mijn groep definitief in en heb begrepen dat de prijs per adres en per rit geldt. De berekening is een schatting. Voor aanvragen op de dag zelf geldt een hoger tarief en hebben vooraf geboekte ritten voorrang.</span></label>
+              <div class="field field--full taxi-booking-terms">
+                <h3>De afspraken op een rij</h3>
+                <ul id="taxi-booking-terms" class="taxi-booking-terms__list">
+                  <li><strong>Je betaalt per adres, niet per persoon.</strong> De prijs geldt voor je hele groep op hetzelfde adres.</li>
+                  <li><strong>Heen en terug worden apart aangerekend.</strong> Voor elke enkele rit geldt het tarief opnieuw.</li>
+                  <li><strong>De berekende prijs is een schatting.</strong> Door wegenwerken, omleidingen of andere omstandigheden kan de uiteindelijke prijs afwijken.</li>
+                  <li><strong>Op de dag zelf boeken kost meer.</strong> We spreken de toeslag vóór vertrek af. Wie vooraf heeft geboekt, krijgt voorrang.</li>
+                </ul>
+                <label class="taxi-consent" for="taxi-consent">
+                  <input id="taxi-consent" name="consent" type="checkbox" value="yes" required aria-describedby="taxi-booking-terms">
+                  <span>Ik schrijf mijn groep definitief in en ga akkoord met deze afspraken.</span>
+                </label>
               </div>
               <div class="field field--full form-actions">
                 <button class="button button--primary" type="submit">Definitief inschrijven</button>

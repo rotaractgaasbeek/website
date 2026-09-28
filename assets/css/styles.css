@@ -1545,11 +1545,39 @@ textarea {
   font-weight: 850;
 }
 
+.taxi-booking-terms {
+  gap: 1rem;
+  padding: 1.1rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #FAFBFC;
+}
+
+.taxi-booking-terms h3 {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.taxi-booking-terms__list {
+  margin: 0;
+  padding-left: 1.2rem;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.taxi-booking-terms__list li + li {
+  margin-top: 0.75rem;
+}
+
 .field .taxi-consent {
   display: flex;
   align-items: flex-start;
   gap: 0.75rem;
-  font-weight: 500;
+  margin: 0;
+  padding-top: 1rem;
+  border-top: 1px solid var(--line);
+  font-weight: 700;
+  cursor: pointer;
 }
 
 .field .taxi-consent input {
@@ -1558,7 +1586,9 @@ textarea {
   min-height: 20px;
   height: 20px;
   margin: 0.2rem 0 0;
+  padding: 0;
   accent-color: var(--cranberry);
+  cursor: pointer;
 }
 
 [data-taxi-form] [hidden] {

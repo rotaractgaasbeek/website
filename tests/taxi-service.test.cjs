@@ -282,6 +282,17 @@ test('taxi page has two rate cards, no price example and no pickup-time fields',
   assert.doesNotMatch(page, /Een rit van 8 km|name="(?:pickupTime|morningTime)"|type="time"/);
 });
 
+test('booking consent is short, required and linked to four readable agreements', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../taxi-service.html'), 'utf8');
+  assert.match(page, /name="consent"[^>]*required[^>]*aria-describedby="taxi-booking-terms"/);
+  assert.match(page, /Ik schrijf mijn groep definitief in en ga akkoord met deze afspraken\./);
+  const terms = page.match(/<ul id="taxi-booking-terms"[^>]*>([\s\S]*?)<\/ul>/)[1];
+  assert.equal((terms.match(/<li>/g) || []).length, 4);
+  for (const rule of ['per adres, niet per persoon', 'Heen en terug worden apart aangerekend', 'prijs is een schatting', 'Op de dag zelf boeken kost meer', 'vooraf heeft geboekt, krijgt voorrang']) {
+    assert.ok(terms.includes(rule));
+  }
+});
+
 test('Apps Script authenticates before doing any work and rejects legacy interest actions', () => {
   const { post, state } = gas();
   assert.equal(post({ ...input(), action: 'taxi_booking', secret: 'wrong' }).ok, false);
