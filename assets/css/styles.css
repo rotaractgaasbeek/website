@@ -1498,6 +1498,73 @@ textarea {
   align-items: start;
 }
 
+.taxi-rates .taxi-rate {
+  margin: 0 0 0.75rem;
+  color: var(--cranberry);
+  font-size: clamp(1.6rem, 3vw, 2.3rem);
+  font-weight: 850;
+}
+
+.taxi-estimator {
+  padding: 1.25rem;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #FCE8F1;
+}
+
+.taxi-estimator h3,
+.taxi-estimator p {
+  margin: 0;
+}
+
+.taxi-estimator .button {
+  justify-self: start;
+  white-space: normal;
+}
+
+.taxi-quote-list {
+  margin: 0.75rem 0;
+}
+
+.taxi-quote-list div {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.3rem 1rem;
+  padding: 0.65rem 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.taxi-quote-list dd {
+  margin: 0;
+  font-weight: 800;
+}
+
+.taxi-quote-total {
+  font-size: 1.3rem;
+  font-weight: 850;
+}
+
+.field .taxi-consent {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-weight: 500;
+}
+
+.field .taxi-consent input {
+  flex: 0 0 20px;
+  width: 20px;
+  min-height: 20px;
+  height: 20px;
+  margin: 0.2rem 0 0;
+  accent-color: var(--cranberry);
+}
+
+[data-taxi-form] [hidden] {
+  display: none !important;
+}
+
 .contact-panel,
 .form-panel {
   border: 1px solid var(--line);

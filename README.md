@@ -9,6 +9,18 @@ Statische meerpagina-website voor Rotaract Gaasbeek Pajottenland.
 - `over-ons.html`
 - `kalender.html`
 - `contact.html`
+- `taxi-service.html`
+
+## Taxi Service
+
+De taxipagina ondersteunt definitieve boekingen, prijsramingen via Google Maps,
+Google Sheets-opslag en ontvangstbevestigingen. Voor activering en het veilig
+bijwerken van de bestaande koppeling: [Taxi Service-installatie](apps-script/TAXI-SERVICE-INSTALLATIE.md).
+
+Lokale tests zonder externe diensten: `node --test tests/taxi-service.test.cjs`.
+Start een lokale preview met `node scripts/preview.cjs` (poort 4173).
+Zonder Google-configuratie tonen berekening en boeken een beschikbaarheidsmelding;
+de preview simuleert geen geslaagde boekingen.
 
 ## Beelden vervangen
 
