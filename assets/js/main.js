@@ -241,7 +241,7 @@ if (contactForm) {
   const applyContactDefaults = () => {
     if (isMembershipLink) {
       topic.value = "lid-worden";
-      subject.value = "Ik wil graag kennismaken met Rotaract";
+      subject.value = "Lid worden";
       message.value = "Ik wil graag vrijblijvend kennismaken met de club.";
     }
   };

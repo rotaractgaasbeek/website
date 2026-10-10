@@ -7,7 +7,7 @@ const contact = require('../api/contact');
 
 const sample = {
   name: 'Test Bezoeker', email: 'test@example.com', topic: 'lid-worden',
-  subject: 'Ik wil graag kennismaken met Rotaract',
+  subject: 'Lid worden',
   message: 'Ik wil graag vrijblijvend kennismaken met de club.', website: '',
 };
 
@@ -61,6 +61,7 @@ test('the familiar contact form requires a message and accepts a membership subj
 
 test('membership buttons open the familiar form without an extra navigation item', () => {
   const page = fs.readFileSync(path.join(__dirname, '../contact.html'), 'utf8');
+  const script = fs.readFileSync(path.join(__dirname, '../assets/js/main.js'), 'utf8');
   const home = fs.readFileSync(path.join(__dirname, '../index.html'), 'utf8');
   const about = fs.readFileSync(path.join(__dirname, '../over-ons.html'), 'utf8');
   for (const field of ['name', 'email', 'subject', 'message']) {
@@ -68,6 +69,7 @@ test('membership buttons open the familiar form without an extra navigation item
   }
   assert.doesNotMatch(page, /<select[^>]*name="topic"/);
   assert.doesNotMatch(page, /nav__link[^\n]*>Lid worden<\/a>/);
+  assert.match(script, /subject\.value = "Lid worden"/);
   for (const source of [home, about]) {
     assert.match(source, /href="contact\.html\?onderwerp=lid-worden#contactformulier"/);
     assert.doesNotMatch(source, /nav__link[^\n]*>Lid worden<\/a>/);
@@ -168,6 +170,6 @@ test('Apps Script sends a club mail with the visitor as reply-to, but only with 
   assert.equal(mails[0].to, 'info@rotaractgaasbeek.be');
   assert.equal(mails[0].replyTo, 'test@example.com');
   assert.match(mails[0].subject, /Mogelijk toekomstig lid/);
-  assert.match(mails[0].subject, /Ik wil graag kennismaken met Rotaract/);
+  assert.match(mails[0].subject, /Lid worden/);
   assert.match(mails[0].body, /vrijblijvend kennismaken/);
 });

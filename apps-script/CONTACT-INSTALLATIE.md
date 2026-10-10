@@ -23,7 +23,7 @@ Sla op en start een **nieuwe deployment** van de website. De pagina toont daarna
 
 ## 3. Testen
 
-1. Open `contact.html?onderwerp=lid-worden#contactformulier`. Het onderwerp **Ik wil graag kennismaken met Rotaract** en een kort bericht moeten al ingevuld zijn; je kunt beide aanpassen.
+1. Open `contact.html?onderwerp=lid-worden#contactformulier`. Het onderwerp **Lid worden** en een kort bericht moeten al ingevuld zijn; je kunt beide aanpassen.
 2. Vul je eigen testnaam en e-mailadres in en verstuur. Je moet op dezelfde pagina **Bedankt! Je bericht is naar de club verstuurd** zien.
 3. Controleer de inbox (en spam) van `info@rotaractgaasbeek.be`. Het onderwerp begint met `[Website] Mogelijk toekomstig lid`. Beantwoord de mail en controleer of het antwoord naar je testadres gaat.
 4. Open ook `contact.html` zonder de extra linkgegevens en test een algemene vraag. Een bericht is altijd verplicht.
