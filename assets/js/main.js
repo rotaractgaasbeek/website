@@ -231,26 +231,69 @@ if (calendarPrev && calendarNext) {
 const contactForm = document.querySelector("[data-contact-form]");
 
 if (contactForm) {
-  contactForm.addEventListener("submit", (event) => {
+  const topic = contactForm.querySelector("[data-contact-topic]");
+  const subject = contactForm.querySelector("[data-contact-subject]");
+  const message = contactForm.querySelector("[data-contact-message]");
+  const status = contactForm.querySelector("[data-contact-status]");
+  const button = contactForm.querySelector('button[type="submit"]');
+  const isMembershipLink = new URLSearchParams(window.location.search).get("onderwerp") === "lid-worden";
+
+  const applyContactDefaults = () => {
+    if (isMembershipLink) {
+      topic.value = "lid-worden";
+      subject.value = "Ik wil graag kennismaken met Rotaract";
+      message.value = "Ik wil graag vrijblijvend kennismaken met de club.";
+    }
+  };
+
+  applyContactDefaults();
+
+  fetch(`${contactForm.action}?status=1`, { cache: "no-store" })
+    .then((response) => response.ok ? response.json() : null)
+    .then((result) => {
+      if (!result?.available) {
+        status.textContent = "Het online formulier is nog niet actief. Je kunt ons voorlopig mailen op info@rotaractgaasbeek.be.";
+        status.classList.add("form-status--error");
+        return;
+      }
+      button.disabled = false;
+      status.textContent = "";
+    })
+    .catch(() => {
+      status.textContent = "Het formulier is momenteel niet beschikbaar. Probeer later opnieuw of mail naar info@rotaractgaasbeek.be.";
+      status.classList.add("form-status--error");
+    });
+
+  contactForm.addEventListener("submit", async (event) => {
     event.preventDefault();
+    if (!contactForm.reportValidity() || button.disabled) return;
 
-    const formData = new FormData(contactForm);
-    const name = String(formData.get("name") || "");
-    const email = String(formData.get("email") || "");
-    const subject = String(formData.get("subject") || "Vraag via website");
-    const message = String(formData.get("message") || "");
+    button.disabled = true;
+    button.textContent = "Bezig met versturen…";
+    status.textContent = "";
+    status.classList.remove("form-status--error");
 
-    const bodyText = [
-      `Naam: ${name}`,
-      `E-mail: ${email}`,
-      "",
-      message,
-    ].join("\n");
+    try {
+      const payload = Object.fromEntries(new FormData(contactForm).entries());
+      const response = await fetch(contactForm.action, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok || !result.ok) throw new Error(result.message || "Versturen is niet gelukt.");
 
-    const mailto = new URL("mailto:info@rotaractgaasbeek.be");
-    mailto.searchParams.set("subject", subject);
-    mailto.searchParams.set("body", bodyText);
-    window.location.href = mailto.toString();
+      contactForm.reset();
+      applyContactDefaults();
+      status.textContent = "Bedankt! Je bericht is naar de club verstuurd. We nemen zo snel mogelijk contact met je op.";
+      button.textContent = "Nog een bericht sturen";
+    } catch (error) {
+      status.textContent = error.message || "Versturen is niet gelukt. Probeer later opnieuw.";
+      status.classList.add("form-status--error");
+      button.textContent = "Opnieuw proberen";
+    } finally {
+      button.disabled = false;
+    }
   });
 }
 

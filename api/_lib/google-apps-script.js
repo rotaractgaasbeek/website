@@ -59,4 +59,4 @@ const callCinemaGoogleAppsScript = (payload, options) =>
     options,
   );
 
-module.exports = { callGoogleAppsScript, callCinemaGoogleAppsScript };
+module.exports = { callAppsScript, callGoogleAppsScript, callCinemaGoogleAppsScript };

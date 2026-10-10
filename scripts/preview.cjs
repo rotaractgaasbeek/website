@@ -5,6 +5,8 @@ const path = require('node:path');
 const root = path.resolve(__dirname, '..');
 const port = Number(process.env.PORT || 4173);
 const handlers = {
+  '/api/contact': require('../api/contact'),
+  '/api/donate': require('../api/donate'),
   '/api/taxi-estimate': require('../api/taxi-estimate'),
   '/api/taxi-booking': require('../api/taxi-booking'),
   '/api/taxi-interest': require('../api/taxi-interest'),

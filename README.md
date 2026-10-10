@@ -22,6 +22,19 @@ Start een lokale preview met `node scripts/preview.cjs` (poort 4173).
 Zonder Google-configuratie tonen berekening en boeken een beschikbaarheidsmelding;
 de preview simuleert geen geslaagde boekingen.
 
+## Contact en kennismaken
+
+Het contactformulier verstuurt berichten en vrijblijvende kennismakingsvragen via
+een aparte Google Apps Script-web-app naar de club. Voor de activering:
+[Contactformulier-installatie](apps-script/CONTACT-INSTALLATIE.md).
+Zonder de twee contactvariabelen blijft de verzendknop zichtbaar maar uitgeschakeld,
+met een duidelijke beschikbaarheidsmelding.
+
+## Online steunen
+
+De steunsectie op Onze impact gebruikt een Stripe-betaallink voor een bedrag naar keuze.
+Voor de activering en automatische Stripe-betaalbewijzen: [Donaties installeren](DONATIES-INSTALLATIE.md).
+
 ## Beelden vervangen
 
 De bestanden in `assets/images/` bevatten de Rotaract-logoassets, faviconbestanden en projectklare sfeerbeelden. Als de originele foto's als losse bestanden beschikbaar zijn, vervang dan de sfeerbeelden door echte foto's met dezelfde bestandsnamen of pas de `src`-waarden in de HTML aan.

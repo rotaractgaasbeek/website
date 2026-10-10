@@ -181,6 +181,7 @@ textarea {
   color: var(--ink);
   font-size: 0.92rem;
   font-weight: 720;
+  white-space: nowrap;
 }
 
 .nav__link:hover,
@@ -191,6 +192,37 @@ textarea {
 
 .nav__cta {
   margin-left: 0.25rem;
+}
+
+@media (max-width: 920px) {
+  .nav__toggle {
+    display: block;
+  }
+
+  .nav__links {
+    position: fixed;
+    inset: 76px 0 auto 0;
+    display: none;
+    width: 100%;
+    padding: 0.85rem 1rem 1rem;
+    border-bottom: 1px solid var(--line);
+    background: var(--paper);
+    box-shadow: 0 20px 34px rgba(24, 33, 44, 0.12);
+  }
+
+  .nav-open .nav__links {
+    display: grid;
+    gap: 0.15rem;
+  }
+
+  .nav__link {
+    width: 100%;
+    padding: 0.85rem;
+  }
+
+  .nav__cta {
+    margin-left: 0;
+  }
 }
 
 .button {
@@ -646,6 +678,13 @@ textarea {
   color: rgba(255, 255, 255, 0.82);
 }
 
+.home-support-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  justify-content: flex-end;
+}
+
 .page-hero {
   position: relative;
   color: var(--paper);
@@ -718,6 +757,24 @@ textarea {
 
 .page-hero--taxi .page-hero__image img {
   object-position: center 42%;
+}
+
+.page-hero--taxi .page-hero__content {
+  min-height: clamp(240px, 31svh, 340px);
+  padding: 2.5rem 0;
+}
+
+.page-hero--taxi .page-title {
+  font-size: clamp(2.2rem, 5vw, 4.2rem);
+}
+
+.page-hero--taxi .lead {
+  max-width: 620px;
+  margin-top: 0.7rem;
+}
+
+.page-hero--taxi .hero__actions {
+  margin-top: 1.2rem;
 }
 
 .rally-hero-meta {
@@ -1491,11 +1548,92 @@ textarea {
   align-items: start;
 }
 
-.taxi-interest {
+#contactformulier {
+  scroll-margin-top: 76px;
+}
+
+.form-panel button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.membership-section {
+  background: var(--cranberry-soft);
+}
+
+.join-invite {
   display: grid;
-  grid-template-columns: minmax(0, 0.85fr) minmax(360px, 1fr);
-  gap: clamp(1.5rem, 5vw, 4rem);
-  align-items: start;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1.5rem;
+  align-items: center;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.join-invite h2 {
+  margin: 0;
+  font-size: clamp(1.6rem, 3vw, 2.6rem);
+  line-height: 1.12;
+}
+
+.join-invite p:last-child {
+  max-width: 680px;
+  margin: 0.8rem 0 0;
+  color: var(--muted);
+}
+
+.taxi-signup {
+  padding: clamp(1.75rem, 4vw, 3.5rem) 0;
+  scroll-margin-top: 76px;
+}
+
+.taxi-booking {
+  max-width: 800px;
+}
+
+.taxi-info {
+  scroll-margin-top: 76px;
+}
+
+.taxi-info > .wrap > p:not(.eyebrow) {
+  max-width: 700px;
+}
+
+.taxi-info .section-title {
+  font-size: clamp(1.8rem, 3vw, 2.9rem);
+}
+
+.taxi-info .taxi-rates {
+  margin-top: 1.5rem;
+}
+
+.taxi-info .taxi-rates .card__body {
+  padding: 1.2rem;
+}
+
+.taxi-info .taxi-rates h3 {
+  margin: 0;
+}
+
+.taxi-info .taxi-rates .card__body > p:last-child {
+  margin-bottom: 0;
+}
+
+.taxi-info__details {
+  max-width: 900px;
+  margin-top: 2rem;
+  columns: 2;
+  column-gap: 2.5rem;
+}
+
+.taxi-info__details p {
+  margin: 0 0 1rem;
+  break-inside: avoid;
+  overflow-wrap: anywhere;
 }
 
 .taxi-rates .taxi-rate {
@@ -1506,15 +1644,44 @@ textarea {
 }
 
 .taxi-estimator {
-  padding: 1.25rem;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: #FCE8F1;
+  background: #FAFBFC;
 }
 
-.taxi-estimator h3,
-.taxi-estimator p {
+.taxi-optional {
+  display: block;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #FAFBFC;
+}
+
+.taxi-optional summary {
+  padding: 0.9rem 1rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.taxi-optional summary::marker {
+  color: var(--cranberry);
+}
+
+.taxi-optional summary span {
+  color: var(--muted);
+  font-weight: 500;
+}
+
+.taxi-optional__content {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0 1rem 1rem;
+}
+
+.taxi-optional__content p {
   margin: 0;
+}
+
+.taxi-optional__content textarea {
+  min-height: 100px;
 }
 
 .taxi-estimator .button {
@@ -1546,8 +1713,8 @@ textarea {
 }
 
 .taxi-booking-terms {
-  gap: 1rem;
-  padding: 1.1rem;
+  gap: 0.75rem;
+  padding: 1rem;
   border: 1px solid var(--line);
   border-radius: var(--radius);
   background: #FAFBFC;
@@ -1566,7 +1733,7 @@ textarea {
 }
 
 .taxi-booking-terms__list li + li {
-  margin-top: 0.75rem;
+  margin-top: 0.4rem;
 }
 
 .field .taxi-consent {
@@ -2300,6 +2467,70 @@ textarea {
   justify-content: flex-end;
 }
 
+.support-section {
+  background: var(--cranberry-soft);
+  scroll-margin-top: 90px;
+}
+
+.support-panel {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(250px, 0.65fr);
+  gap: clamp(1.5rem, 5vw, 4rem);
+  align-items: center;
+  padding: clamp(1.5rem, 4vw, 3rem);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.support-panel .section-title {
+  font-size: clamp(2rem, 4vw, 3.6rem);
+}
+
+.support-panel__actions {
+  margin-top: 1.5rem;
+}
+
+.support-panel__pending {
+  max-width: 540px;
+  margin: 0;
+  font-weight: 700;
+}
+
+.support-panel__pending a,
+.support-panel__aside a {
+  color: var(--cranberry-dark);
+  text-decoration: underline;
+  text-underline-offset: 0.15em;
+}
+
+.support-panel__note {
+  margin: 1.1rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+
+.support-panel__aside {
+  padding: 1.4rem;
+  border-radius: var(--radius);
+  background: var(--mist);
+}
+
+.support-panel__aside h3 {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+.support-panel__aside p:last-child {
+  margin-bottom: 0;
+}
+
+.donate-cta[hidden],
+.support-panel__pending[hidden] {
+  display: none !important;
+}
+
 .transparency-callout {
   display: grid;
   grid-template-columns: 0.9fr 1.1fr;
@@ -2419,35 +2650,6 @@ textarea {
 }
 
 @media (max-width: 920px) {
-  .nav__toggle {
-    display: block;
-  }
-
-  .nav__links {
-    position: fixed;
-    inset: 76px 0 auto 0;
-    display: none;
-    width: 100%;
-    padding: 0.85rem 1rem 1rem;
-    border-bottom: 1px solid var(--line);
-    background: var(--paper);
-    box-shadow: 0 20px 34px rgba(24, 33, 44, 0.12);
-  }
-
-  .nav-open .nav__links {
-    display: grid;
-    gap: 0.15rem;
-  }
-
-  .nav__link {
-    width: 100%;
-    padding: 0.85rem;
-  }
-
-  .nav__cta {
-    margin-left: 0;
-  }
-
   .section-head--split,
   .story-grid,
   .rally-cause,
@@ -2458,13 +2660,16 @@ textarea {
   .club-info__layout,
   .calendar-grid,
   .contact-layout,
-  .taxi-interest,
   .rally-registration,
   .ticket-layout,
   .cinema-ticket-layout,
   .event-detail,
   .footer-grid {
     grid-template-columns: 1fr;
+  }
+
+  .contact-layout > .form-panel {
+    order: -1;
   }
 
   .grid--3,
@@ -2480,6 +2685,7 @@ textarea {
   .impact-intro,
   .impact-feature,
   .impact-cause-grid,
+  .support-panel,
   .transparency-callout,
   .legal-layout,
   .impact-cta {
@@ -2491,6 +2697,10 @@ textarea {
   }
 
   .impact-cta__actions {
+    justify-content: flex-start;
+  }
+
+  .home-support-actions {
     justify-content: flex-start;
   }
 
@@ -2518,6 +2728,15 @@ textarea {
 }
 
 @media (max-width: 640px) {
+  .page-hero--taxi .page-hero__content {
+    min-height: 220px;
+    padding: 1.75rem 0;
+  }
+
+  .taxi-info__details {
+    columns: 1;
+  }
+
   .cinema-times {
     grid-template-columns: 1fr;
   }
@@ -2570,6 +2789,7 @@ textarea {
 
   .hero__actions,
   .highlight-band,
+  .join-invite,
   .form-ticket-cta,
   .sponsor-logos {
     display: grid;

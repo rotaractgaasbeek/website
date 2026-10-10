@@ -72,7 +72,7 @@
         </div>
       </section>
 
-      <section class="section">
+      <section class="section" id="contactformulier">
         <div class="wrap contact-layout">
           <aside class="contact-panel">
             <p class="eyebrow">Bereik ons</p>
@@ -108,26 +108,32 @@
 
           <section class="form-panel" aria-label="Contactformulier">
             <h2>Stuur een bericht</h2>
-            <form class="form-grid" data-contact-form>
+            <form class="form-grid" action="/api/contact" method="post" data-contact-form>
+              <input name="topic" type="hidden" value="algemene-vraag" data-contact-topic>
               <div class="field">
-                <label for="name">Naam</label>
-                <input id="name" name="name" type="text" autocomplete="name" required>
+                <label for="contact-name">Naam</label>
+                <input id="contact-name" name="name" type="text" autocomplete="name" maxlength="100" required>
               </div>
               <div class="field">
-                <label for="email">E-mail</label>
-                <input id="email" name="email" type="email" autocomplete="email" required>
+                <label for="contact-email">E-mail</label>
+                <input id="contact-email" name="email" type="email" autocomplete="email" maxlength="254" required>
+              </div>
+              <div class="field form-honeypot" aria-hidden="true">
+                <label for="contact-website">Website</label>
+                <input id="contact-website" name="website" type="text" tabindex="-1" autocomplete="off">
               </div>
               <div class="field field--full">
-                <label for="subject">Onderwerp</label>
-                <input id="subject" name="subject" type="text" value="Vraag via website">
+                <label for="contact-subject">Onderwerp</label>
+                <input id="contact-subject" name="subject" type="text" value="Vraag via website" maxlength="120" data-contact-subject>
               </div>
               <div class="field field--full">
-                <label for="message">Bericht</label>
-                <textarea id="message" name="message" required></textarea>
+                <label for="contact-message">Bericht</label>
+                <textarea id="contact-message" name="message" maxlength="5000" data-contact-message required></textarea>
               </div>
               <div class="field field--full">
-                <button class="button button--primary" type="submit">Verstuur via e-mail</button>
-                <p class="form-note">Het formulier opent je mailprogramma met een vooraf ingevuld bericht. We gebruiken je gegevens alleen om je vraag te beantwoorden. Lees ook ons <a href="privacy.html">privacybeleid</a>.</p>
+                <button class="button button--primary" type="submit" disabled>Verstuur bericht</button>
+                <p class="form-status" role="status" aria-live="polite" data-contact-status>Het formulier wordt geladen…</p>
+                <p class="form-note">We gebruiken je gegevens alleen om je bericht of interesse op te volgen. Lees ook ons <a href="privacy.html">privacybeleid</a>.</p>
               </div>
             </form>
           </section>
