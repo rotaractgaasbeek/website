@@ -6,11 +6,11 @@
   fetch("/api/donate?status=1", { cache: "no-store" })
     .then((response) => response.ok ? response.json() : null)
     .then((status) => {
-      if (!status?.available) return;
-      link.hidden = false;
-      pending.hidden = true;
+      if (status?.available !== false) return;
+      link.hidden = true;
+      pending.hidden = false;
     })
     .catch(() => {
-      // Keep the honest unavailable message if the donation endpoint cannot be reached.
+      // Keep the link usable; the server still shows a clear fallback if Stripe is unavailable.
     });
 })();

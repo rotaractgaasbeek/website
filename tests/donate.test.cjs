@@ -1,5 +1,7 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const fs = require('node:fs');
+const path = require('node:path');
 const donate = require('../api/donate');
 
 function call(method = 'GET', url = '/api/donate') {
@@ -59,4 +61,11 @@ test('a configured donation link becomes available and redirects to Stripe', () 
     if (old === undefined) delete process.env.STRIPE_DONATION_LINK;
     else process.env.STRIPE_DONATION_LINK = old;
   }
+});
+
+test('the donation button is visible immediately and the unavailable message starts hidden', () => {
+  const impact = fs.readFileSync(path.join(__dirname, '../impact.html'), 'utf8');
+  assert.match(impact, /href="\/api\/donate" data-donation-link>Doneer een bedrag naar keuze<\/a>/);
+  assert.match(impact, /data-donation-pending role="status" hidden>/);
+  assert.doesNotMatch(impact, /Na activatie verloopt de betaling/);
 });
