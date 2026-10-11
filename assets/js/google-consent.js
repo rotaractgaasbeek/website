@@ -80,15 +80,15 @@
 
   const banner = document.createElement("section");
   banner.className = "cookie-banner";
-  banner.setAttribute("aria-label", "Keuze voor meetcookies");
+  banner.setAttribute("aria-label", "Keuze voor advertentiemeting");
   banner.innerHTML = `
     <div class="cookie-banner__text">
-      <h2>Mag Rotaract meetcookies gebruiken?</h2>
-      <p>Met jouw toestemming laden we Google Ads en kunnen meetcookies worden geplaatst. Zo zien we hoe onze advertenties werken, bijvoorbeeld of ze leiden tot een verstuurd contactformulier. Zonder toestemming laden we Google Ads niet. We delen geen formulierinhoud en gebruiken geen advertentiepersonalisatie. Je kunt je keuze later aanpassen; we onthouden die maximaal 180 dagen. <a href="privacy.html">Lees ons cookiebeleid</a>.</p>
+      <h2>Mag Google Ads bezoeken meten?</h2>
+      <p>Met jouw toestemming laden we de Google Ads-tag om te zien hoe onze advertenties werken. Zonder toestemming laden we die niet. We gebruiken deze keuze niet voor gepersonaliseerde advertenties. <a href="privacy.html">Lees ons cookiebeleid</a>.</p>
     </div>
     <div class="cookie-banner__actions">
-      <button class="cookie-banner__button" type="button" data-cookie-deny>Alleen noodzakelijke cookies</button>
-      <button class="cookie-banner__button" type="button" data-cookie-allow>Meetcookies toestaan</button>
+      <button class="cookie-banner__button cookie-banner__button--secondary" type="button" data-cookie-deny>Alleen noodzakelijk</button>
+      <button class="cookie-banner__button cookie-banner__button--primary" type="button" data-cookie-allow>Meting toestaan</button>
       <button class="cookie-banner__close" type="button" data-cookie-close aria-label="Cookiekeuze sluiten" hidden>Sluiten</button>
     </div>
   `;

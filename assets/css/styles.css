@@ -2755,20 +2755,16 @@ textarea {
   cursor: pointer;
 }
 
-.cookie-banner__button {
+.cookie-banner__button--primary {
+  border: 1px solid var(--cranberry);
+  color: #fff;
+  background: var(--cranberry);
+}
+
+.cookie-banner__button--secondary {
   border: 1px solid var(--cranberry);
   color: var(--cranberry-dark);
   background: #fff;
-}
-
-.cookie-banner__button:hover,
-.cookie-banner__button:focus-visible {
-  background: #fff1f6;
-}
-
-.cookie-banner__button:focus-visible {
-  outline: 2px solid var(--cranberry-dark);
-  outline-offset: 2px;
 }
 
 .cookie-banner__close {
