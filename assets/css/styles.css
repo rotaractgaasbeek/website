@@ -708,6 +708,18 @@ textarea {
   object-position: center center;
 }
 
+.page-hero--contact .page-hero__image {
+  opacity: 0.9;
+}
+
+.page-hero--contact .page-hero__image img {
+  object-position: 58% 35%;
+}
+
+.page-hero.page-hero--contact::after {
+  background: linear-gradient(90deg, rgba(24, 33, 44, 0.88), rgba(24, 33, 44, 0.24));
+}
+
 .page-hero--cinema .page-hero__image {
   opacity: 0.68;
 }
