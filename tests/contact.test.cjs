@@ -117,11 +117,12 @@ test('the website proxy validates requests and sends only valid messages through
     const bot = response();
     await contact(request({ ...sample, website: 'bot.example' }), bot);
     assert.equal(bot.result().status, 200);
+    assert.deepEqual(bot.result().body, { ok: true, delivered: false });
     assert.equal(calls.length, 0);
 
     const valid = response();
     await contact(request(), valid);
-    assert.deepEqual(valid.result().body, { ok: true });
+    assert.deepEqual(valid.result().body, { ok: true, delivered: true });
     assert.equal(calls.length, 1);
     assert.equal(calls[0].url, 'https://script.google.com/macros/s/test-id/exec');
     const forwarded = JSON.parse(calls[0].options.body);

@@ -281,12 +281,17 @@ if (contactForm) {
         body: JSON.stringify(payload),
       });
       const result = await response.json().catch(() => ({}));
-      if (!response.ok || !result.ok) throw new Error(result.message || "Versturen is niet gelukt.");
+      if (!response.ok || !result.ok || result.delivered !== true) throw new Error(result.message || "Versturen is niet gelukt.");
 
       contactForm.reset();
       applyContactDefaults();
       status.textContent = "Bedankt! Je bericht is naar de club verstuurd. We nemen zo snel mogelijk contact met je op.";
       button.textContent = "Nog een bericht sturen";
+      try {
+        window.rotaractTrackContactConversion?.();
+      } catch {
+        // Een meetfout mag een daadwerkelijk verstuurde contactmail niet als fout tonen.
+      }
     } catch (error) {
       status.textContent = error.message || "Versturen is niet gelukt. Probeer later opnieuw.";
       status.classList.add("form-status--error");

@@ -30,6 +30,28 @@ een aparte Google Apps Script-web-app naar de club. Voor de activering:
 Zonder de twee contactvariabelen blijft de verzendknop zichtbaar maar uitgeschakeld,
 met een duidelijke beschikbaarheidsmelding.
 
+## Google Ads-conversie voor het contactformulier
+
+De Google Ads-tag vraagt eerst toestemming en laadt anders niet. Een contactconversie
+wordt alleen verstuurd als het formulier geldig is én de server bevestigt dat de
+contactmail door Google Apps Script is verzonden. Klikken op de knop, een mislukte
+verzending of het bezoeken van de contactpagina tellen niet als deze conversie.
+De globale tag-ID is ingesteld op `AW-18456720108`. Voor activering ontbreekt nog
+de **conversielabel** van een handmatig aangemaakte Google Ads-conversieactie.
+
+1. Maak in Google Ads een websiteconversie voor een verzonden contactformulier.
+   Kies **handmatig met code** (een eventfragment), niet een URL- of klikregel.
+2. Zoek in het eventfragment `send_to: 'AW-18456720108/…'` en kopieer alleen
+   het deel na de schuine streep.
+3. Plak dat deel als `contactConversionLabel` in
+   [`assets/js/google-consent.js`](assets/js/google-consent.js). Publiceer daarna
+   de website opnieuw.
+4. Test met toestemming voor meting: een geldig verzonden formulier moet één
+   contactconversie geven; een ongeldige of mislukte verzending geen. Zet voor
+   deze conversieactie geen automatische paginaweergave- of formulierklikmeting aan.
+
+Er worden geen ingevulde formuliergegevens naar Google Ads gestuurd.
+
 ## Online steunen
 
 De steunsectie op Onze impact gebruikt een Stripe-betaallink voor een bedrag naar keuze.

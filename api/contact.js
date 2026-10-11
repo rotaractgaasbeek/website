@@ -80,7 +80,7 @@ async function handler(request, response) {
   }
   const data = validateContact(body);
   if (!data) return json(response, 400, { ok: false, message: 'Controleer je naam, e-mailadres, onderwerp en bericht.' });
-  if (data.honeypot) return json(response, 200, { ok: true });
+  if (data.honeypot) return json(response, 200, { ok: true, delivered: false });
 
   try {
     await callAppsScript(
@@ -89,7 +89,7 @@ async function handler(request, response) {
       process.env.CONTACT_FORM_SECRET,
       { timeoutMs: 12000 },
     );
-    return json(response, 200, { ok: true });
+    return json(response, 200, { ok: true, delivered: true });
   } catch {
     return json(response, 502, { ok: false, message: 'Verzenden is nu niet gelukt. Probeer later opnieuw of mail ons rechtstreeks op info@rotaractgaasbeek.be.' });
   }
