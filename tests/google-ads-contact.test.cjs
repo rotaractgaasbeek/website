@@ -43,7 +43,7 @@ function consentPage(label = '') {
     getItem(key) { return storage.get(key) || null; },
     setItem(key, value) { storage.set(key, value); },
   };
-  const script = consentSource.replace('const contactConversionLabel = "";', `const contactConversionLabel = "${label}";`);
+  const script = consentSource.replace(/const contactConversionLabel = "[^"]*";/, `const contactConversionLabel = "${label}";`);
   vm.runInNewContext(script, { document, window, localStorage, Date });
   return { window, controls, appendedScripts, banner };
 }
@@ -74,6 +74,10 @@ test('only a configured conversion label can send a conversion after consent', (
   assert.equal(events[0][1], 'conversion');
   assert.equal(events[0][2].send_to, 'AW-18456720108/TEST_LABEL');
   assert.deepEqual(Object.keys(events[0][2]), ['send_to']);
+});
+
+test('the production contact conversion uses the label from Google Ads', () => {
+  assert.match(consentSource, /const contactConversionLabel = "IB_UCILo3pgdEOzl7OBE";/);
 });
 
 async function submitContact({ valid = true, responseOk = true, delivered = true, requestFails = false } = {}) {

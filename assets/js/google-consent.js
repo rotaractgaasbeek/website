@@ -2,9 +2,8 @@
   "use strict";
 
   const tagId = "AW-18456720108";
-  // Vul de conversielabel van de handmatige Google Ads-actie hier in.
-  // Alleen de globale tag-ID is niet genoeg om een contactconversie te registreren.
-  const contactConversionLabel = "";
+  // Google Ads: Leadformulier indienen. Alleen versturen na bevestigde contactmail.
+  const contactConversionLabel = "IB_UCILo3pgdEOzl7OBE";
   const storageKey = "rotaract-google-ads-consent-v1";
   const maxChoiceAge = 180 * 24 * 60 * 60 * 1000;
   const denied = {

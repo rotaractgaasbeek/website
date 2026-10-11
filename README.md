@@ -36,19 +36,15 @@ De Google Ads-tag vraagt eerst toestemming en laadt anders niet. Een contactconv
 wordt alleen verstuurd als het formulier geldig is én de server bevestigt dat de
 contactmail door Google Apps Script is verzonden. Klikken op de knop, een mislukte
 verzending of het bezoeken van de contactpagina tellen niet als deze conversie.
-De globale tag-ID is ingesteld op `AW-18456720108`. Voor activering ontbreekt nog
-de **conversielabel** van een handmatig aangemaakte Google Ads-conversieactie.
-
-1. Maak in Google Ads een websiteconversie voor een verzonden contactformulier.
-   Kies **handmatig met code** (een eventfragment), niet een URL- of klikregel.
-2. Zoek in het eventfragment `send_to: 'AW-18456720108/…'` en kopieer alleen
-   het deel na de schuine streep.
-3. Plak dat deel als `contactConversionLabel` in
-   [`assets/js/google-consent.js`](assets/js/google-consent.js). Publiceer daarna
-   de website opnieuw.
-4. Test met toestemming voor meting: een geldig verzonden formulier moet één
-   contactconversie geven; een ongeldige of mislukte verzending geen. Zet voor
-   deze conversieactie geen automatische paginaweergave- of formulierklikmeting aan.
+De globale tag-ID is `AW-18456720108`. De conversielabel voor
+**Leadformulier indienen** is ingesteld in
+[`assets/js/google-consent.js`](assets/js/google-consent.js). Publiceer de
+website opnieuw en test met toestemming voor meting: een geldig verzonden
+formulier moet één contactconversie geven; een ongeldige of mislukte verzending
+geen. De voorbeeldcode van Google voor een knopklik hoeft niet te worden
+geplakt. Zet voor deze conversieactie geen automatische paginaweergave- of
+formulierklikmeting aan. De voorbeeldwaarde van 1 USD wordt niet meegestuurd;
+controleer in Google Ads of de ingestelde conversiewaarde klopt voor een lead.
 
 Er worden geen ingevulde formuliergegevens naar Google Ads gestuurd.
 
