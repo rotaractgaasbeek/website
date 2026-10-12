@@ -53,6 +53,24 @@ Er worden geen ingevulde formuliergegevens naar Google Ads gestuurd.
 De steunsectie op Onze impact gebruikt een Stripe-betaallink voor een bedrag naar keuze.
 Voor de activering en automatische Stripe-betaalbewijzen: [Donaties installeren](DONATIES-INSTALLATIE.md).
 
+## Vindbaarheid in zoekmachines en AI-antwoorden
+
+De homepagina beschrijft onze club in Vlaams-Brabant, de contactpagina beantwoordt
+vragen over lid worden en de over-ons-pagina legt uit wat Rotaract is. De site
+heeft leesbare titels, canonieke URL's, organisatiegegevens in JSON-LD en een
+[`sitemap.xml`](sitemap.xml). De sitemap vermeldt alleen een `lastmod` als de
+betreffende pagina werkelijk is bijgewerkt.
+
+Na publicatie: verifieer `www.rotaractgaasbeek.be` in Google Search Console,
+dien `https://www.rotaractgaasbeek.be/sitemap.xml` in en inspecteer de URL's
+van home, over ons en contact. Volg daarna de zoekopdrachten en klikken in het
+prestatierapport; plaats nieuwe, concrete updates over clubmomenten en projecten
+wanneer die er zijn. Vraag Rotary, lokale partners en relevante verenigingen
+om naar de officiële site te linken waar dat inhoudelijk past. Een toppositie
+voor brede zoekwoorden als `rotaract` of `rotaract vlaanderen` is niet
+garandeerbaar; Google Ads-advertenties beïnvloeden de organische rangschikking
+niet.
+
 ## Beelden vervangen
 
 De bestanden in `assets/images/` bevatten de Rotaract-logoassets, faviconbestanden en projectklare sfeerbeelden. Als de originele foto's als losse bestanden beschikbaar zijn, vervang dan de sfeerbeelden door echte foto's met dezelfde bestandsnamen of pas de `src`-waarden in de HTML aan.

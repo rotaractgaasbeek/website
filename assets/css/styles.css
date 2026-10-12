@@ -1560,6 +1560,14 @@ textarea {
   align-items: start;
 }
 
+.contact-questions {
+  max-width: 850px;
+}
+
+.contact-questions .section-title {
+  margin-bottom: 1.5rem;
+}
+
 #contactformulier {
   scroll-margin-top: 76px;
 }
