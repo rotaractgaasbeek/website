@@ -28,7 +28,7 @@
     <link rel="shortcut icon" href="/favicon.ico">
     <link rel="apple-touch-icon" href="/assets/images/apple-touch-icon.png">
     <link rel="manifest" href="/site.webmanifest">
-    <link rel="stylesheet" href="assets/css/styles.css?v=20261010-taxi-simple">
+    <link rel="stylesheet" href="assets/css/styles.css?v=20261013-taxi-layout">
     <script defer src="assets/js/google-consent.js"></script>
     <script>
       window.si = window.si || function () { (window.siq = window.siq || []).push(arguments); };
@@ -167,24 +167,33 @@
               </div>
             </form>
           </section>
-        </div>
-      </section>
-
-      <section class="section section--tight taxi-info" id="ritprijs" aria-labelledby="ritprijs-title">
-        <div class="wrap">
-          <p class="eyebrow">Praktisch &amp; tarieven</p>
-          <h2 class="section-title" id="ritprijs-title">Goed om te weten</h2>
-          <p>De prijs geldt voor je hele groep op hetzelfde adres, <strong>niet per persoon</strong>. Voor meerdere adressen maak je afzonderlijke boekingen.</p>
-          <div class="grid grid--2 taxi-rates">
-            <article class="card"><div class="card__body"><p class="taxi-rate">€10</p><h3>Per adres, per rit</h3><p>Vaste kost met de eerste 5 km inbegrepen.</p></div></article>
-            <article class="card"><div class="card__body"><p class="taxi-rate">+ €2 / km</p><h3>Na de eerste 5 km</h3><p>Voor elke bijkomende kilometer over de weg.</p></div></article>
-          </div>
-          <div class="taxi-info__details">
-            <p><strong>Wanneer?</strong> Vrijdag 20 november 2026 vanaf 19.00 uur, Krekelhof Gooik, Drie Egyptenbaan 11, 1755 Gooik. De chauffeurs blijven de hele avond beschikbaar. Je kiest ter plaatse wanneer je naar huis gaat; afhankelijk van de ritten kan er een wachttijd zijn.</p>
-            <p><strong>Vooraf boeken loont.</strong> Ook op de avond zelf kun je nog een taxi vragen, maar dan geldt een hoger tarief dat we vooraf met je afspreken. Vooraf geboekte ritten krijgen voorrang.</p>
-            <p><strong>Met eigen auto gekomen?</strong> We brengen je veilig naar huis als je niet meer mag rijden. Op zaterdagochtend 21 november kunnen we je terug naar je wagen brengen. Die ochtendrit kost hetzelfde als de thuisrit van de avond voordien.</p>
-            <p>Een boeking wijzigen? Mail je boekingsnummer naar <a href="mailto:info@rotaractgaasbeek.be">info@rotaractgaasbeek.be</a>. Een prijsraming blijft een schatting: wegenwerken, omleidingen of andere omstandigheden kunnen de uiteindelijke prijs wijzigen.</p>
-          </div>
+          <aside class="taxi-sidebar taxi-sidebar--rates" id="ritprijs" aria-labelledby="ritprijs-title">
+            <p class="eyebrow">Tarieven</p>
+            <h2 id="ritprijs-title">Wat kost het?</h2>
+            <p class="taxi-sidebar__lead">Je betaalt <strong>per adres, niet per persoon</strong>. Heen en terug zijn twee afzonderlijke ritten. Voor meerdere adressen boek je apart.</p>
+            <div class="taxi-rates">
+              <div class="taxi-rate-item">
+                <p class="taxi-rate">€10</p>
+                <p><strong>Per adres, per rit</strong><br>De eerste 5 km zijn inbegrepen.</p>
+              </div>
+              <div class="taxi-rate-item">
+                <p class="taxi-rate">+ €2/km</p>
+                <p><strong>Na de eerste 5 km</strong><br>Per bijkomende kilometer over de weg.</p>
+              </div>
+            </div>
+            <p class="taxi-sidebar__note">De prijsberekening in het formulier is een schatting. Door wegenwerken, omleidingen of andere omstandigheden kan de eindprijs afwijken.</p>
+          </aside>
+          <aside class="taxi-sidebar taxi-sidebar--practical" aria-labelledby="taxi-practical-title">
+            <p class="eyebrow">Goed om te weten</p>
+            <h2 id="taxi-practical-title">Praktisch</h2>
+            <ul class="taxi-sidebar__list">
+              <li><strong>Waar en wanneer?</strong> Vrijdag 20 november 2026 vanaf 19.00 uur in Krekelhof Gooik, Drie Egyptenbaan 11, 1755 Gooik.</li>
+              <li><strong>Terug naar huis?</strong> Onze chauffeurs zijn er de hele avond. Je kiest zelf wanneer je vertrekt; het kan even wachten zijn.</li>
+              <li><strong>Vooraf boeken loont.</strong> Je kunt ook op de avond zelf een taxi vragen, maar dan betaal je meer. We spreken de toeslag vooraf af; vooraf geboekte ritten krijgen voorrang.</li>
+              <li><strong>Met de auto gekomen?</strong> Als je niet meer mag rijden, brengen we je thuis. Zaterdagochtend 21 november kunnen we je voor hetzelfde bedrag als de thuisrit terug naar je wagen brengen.</li>
+            </ul>
+            <p class="taxi-sidebar__note">Boeking wijzigen? Mail je boekingsnummer naar <a href="mailto:info@rotaractgaasbeek.be">info@rotaractgaasbeek.be</a>.</p>
+          </aside>
         </div>
       </section>
     </main>

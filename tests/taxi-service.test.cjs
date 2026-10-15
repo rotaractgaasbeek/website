@@ -278,8 +278,20 @@ test('every trip can be booked without pickup times; obsolete times are ignored'
 test('taxi page has two rate cards, no price example and no pickup-time fields', () => {
   const page = fs.readFileSync(path.join(__dirname, '../taxi-service.html'), 'utf8');
   assert.equal((page.match(/class="taxi-rate"/g) || []).length, 2);
-  assert.match(page, /grid--2 taxi-rates/);
+  assert.match(page, /class="taxi-rates"/);
   assert.doesNotMatch(page, /Een rit van 8 km|name="(?:pickupTime|morningTime)"|type="time"/);
+});
+
+test('taxi details flank the form on wide screens and follow it on small screens', () => {
+  const page = fs.readFileSync(path.join(__dirname, '../taxi-service.html'), 'utf8');
+  const css = fs.readFileSync(path.join(__dirname, '../assets/css/styles.css'), 'utf8');
+  const form = page.indexOf('aria-label="Boekingsformulier Taxi Service"');
+  const rates = page.indexOf('class="taxi-sidebar taxi-sidebar--rates"');
+  const practical = page.indexOf('class="taxi-sidebar taxi-sidebar--practical"');
+  assert.ok(form !== -1 && form < rates && rates < practical);
+  assert.match(page, /id="ritprijs"/);
+  assert.match(css, /grid-template-areas:\s*"form"\s*"rates"\s*"practical"/);
+  assert.match(css, /@media \(min-width: 1100px\)[\s\S]*?grid-template-areas: "rates form practical"/);
 });
 
 test('booking consent is short, required and linked to four readable agreements', () => {
