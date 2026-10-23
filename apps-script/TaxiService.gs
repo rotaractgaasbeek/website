@@ -36,6 +36,43 @@ function setupTaxiService() {
   console.log('Gebruik FORM_SECRET uit Projectinstellingen → Scriptproperties als TAXI_FORM_SECRET in Vercel.');
 }
 
+// Open de /exec-link in een browser om de juiste implementatie te herkennen.
+// Een GET-aanvraag maakt nooit een boeking aan en toont geen sleutel of persoonsgegevens.
+function doGet() {
+  return taxiResponse({ ok: true, service: 'rotaract-taxi-bookingen', message: 'De web-app is bereikbaar. Boekingen verlopen alleen via de website.' });
+}
+
+// Voer dit handmatig uit in de Apps Script-editor, vóór de website wordt omgeschakeld.
+function checkTaxiService() {
+  const properties = PropertiesService.getScriptProperties();
+  const spreadsheetId = properties.getProperty('SPREADSHEET_ID');
+  if (!spreadsheetId || !properties.getProperty('FORM_SECRET')) {
+    throw new Error('Voer eerst setupTaxiService uit.');
+  }
+  const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+  const sheet = ensureTaxiSheet(spreadsheet);
+  console.log('Google Sheet: ' + spreadsheet.getUrl());
+  console.log('Tabblad: ' + TAXI_SHEET_NAME);
+  console.log('Aantal boekingen: ' + Math.max(0, sheet.getLastRow() - 1));
+  console.log('Mailontvangers vandaag nog beschikbaar: ' + MailApp.getRemainingDailyQuota());
+}
+
+// Zet TEST_EMAIL op je eigen adres in Projectinstellingen → Scriptproperties.
+// Alleen handmatig uitvoeren; dit maakt geen boeking of Sheet-rij aan.
+function sendTaxiTestMail() {
+  const email = (PropertiesService.getScriptProperties().getProperty('TEST_EMAIL') || '').trim();
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new Error('Vul eerst je eigen TEST_EMAIL in bij de scriptproperties.');
+  }
+  MailApp.sendEmail({
+    to: email,
+    subject: 'Test ontvangstmail Rotaract Taxi Service',
+    body: 'Dit is een test van het nieuwe Taxi Service-script. Er is geen boeking gemaakt.',
+    name: 'Rotaract Gaasbeek Pajottenland',
+  });
+  console.log('Testmail voor verzending aangeboden. Controleer de inbox en spammap van TEST_EMAIL.');
+}
+
 function doPost(event) {
   try {
     const data = JSON.parse(event.postData.contents || '{}');

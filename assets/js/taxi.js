@@ -130,7 +130,7 @@
       if (!result.id) throw new Error('Je boeking is niet bevestigd. Neem contact op via info@rotaractgaasbeek.be.');
       status.textContent = `Je definitieve inschrijving is ontvangen. Boekingsnummer: ${result.id}. ` +
         (result.emailSent
-          ? 'De ontvangstbevestiging is per e-mail verstuurd. Controleer ook je spammap.'
+          ? `De bevestigingsmail is voor verzending aangeboden aan ${payload.email}. Controleer je inbox en spammap; neem contact op als je niets ontvangt.`
           : 'Je boeking is opgeslagen, maar de ontvangstmail is nog niet verstuurd. Bewaar je boekingsnummer en neem bij vragen contact op met info@rotaractgaasbeek.be.') +
         (result.estimatePending ? ' De ritprijs spreken we nog met je af.' : ' De prijsraming blijft een schatting.') +
         (result.sameDay ? ' Voor deze aanvraag op de dag zelf geldt een toeslag.' : '');

@@ -1,5 +1,9 @@
 # Taxi Service: definitieve boekingen activeren
 
+**Wil je alles vanaf nul opnieuw installeren? Volg dan uitsluitend
+[`TAXI-SERVICE-VAN-NUL.md`](TAXI-SERVICE-VAN-NUL.md).** De stappen hieronder
+zijn alleen bedoeld om een bestaande, werkende koppeling bij te werken.
+
 De website gebruikt twee Vercel-functies: `/api/taxi-estimate` voor de prijsraming
 en `/api/taxi-booking` voor de definitieve inschrijving. Beide gebruiken het
 afzonderlijke Apps Script-project met `TaxiService.gs`. Dat project berekent de

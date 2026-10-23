@@ -17,7 +17,7 @@ const source = fs.readFileSync(path.join(__dirname, '../apps-script/TaxiService.
 // All Google services are in-memory fakes. These tests never access accounts,
 // real addresses, spreadsheets, or mail recipients.
 function gas(options = {}) {
-  const state = { rows: [], mails: [], calls: [], cache: new Map(), locked: false };
+  const state = { rows: [], mails: [], calls: [], logs: [], cache: new Map(), locked: false };
   const range = (row, column, rows = 1, columns = 1) => ({
     getValues: () => Array.from({ length: rows }, (_, r) =>
       Array.from({ length: columns }, (_, c) => state.rows[row - 1 + r]?.[column - 1 + c] ?? '')),
@@ -49,7 +49,7 @@ function gas(options = {}) {
   const spreadsheet = { getSheetByName: () => sheet, insertSheet: () => sheet, getUrl: () => 'mock-sheet' };
   const properties = new Map([['FORM_SECRET', 'test-secret'], ['SPREADSHEET_ID', 'mock-sheet']]);
   const context = vm.createContext({
-    console: { log() {}, error() {} },
+    console: { log(value) { state.logs.push(value); }, error() {} },
     Maps: {
       DirectionFinder: { Mode: { DRIVING: 'driving' } },
       newDirectionFinder() {
@@ -86,7 +86,7 @@ function gas(options = {}) {
     SpreadsheetApp: { openById: () => spreadsheet, flush() {} },
     PropertiesService: { getScriptProperties: () => ({ getProperty: key => properties.get(key), setProperty: (key, value) => properties.set(key, value) }) },
     LockService: { getScriptLock: () => ({ waitLock() { state.locked = true; }, releaseLock() { state.locked = false; } }) },
-    MailApp: { sendEmail(mail) {
+    MailApp: { getRemainingDailyQuota: () => 100, sendEmail(mail) {
       if (mail.to === options.mailFailure) throw new Error('Test mail unavailable');
       state.mails.push(mail);
     } },
@@ -95,8 +95,31 @@ function gas(options = {}) {
   vm.runInContext(source, context);
   const booking = (overrides = {}) => context.normalizeTaxiBooking({ ...input(overrides), consent: true });
   const post = data => JSON.parse(context.doPost({ postData: { contents: JSON.stringify(data) } }).text);
-  return { context, state, booking, post };
+  return { context, state, properties, booking, post };
 }
+
+test('new deployment has a safe browser health check and a private setup check', () => {
+  const { context, state } = gas();
+  const health = JSON.parse(context.doGet().text);
+  assert.equal(health.version, 'taxi-booking-v1');
+  assert.equal(health.service, 'rotaract-taxi-bookingen');
+  assert.doesNotMatch(JSON.stringify(health), /test-secret|mock-sheet|@/);
+  assert.equal(state.rows.length, 0);
+  context.checkTaxiService();
+  assert.ok(state.logs.some(line => line === 'Google Sheet: mock-sheet'));
+  assert.ok(state.logs.some(line => line === 'Aantal boekingen: 0'));
+  assert.doesNotMatch(JSON.stringify(state.logs), /test-secret/);
+});
+
+test('manual test mail requires an explicit recipient and never creates a booking', () => {
+  const { context, state, properties } = gas();
+  assert.throws(() => context.sendTaxiTestMail(), /TEST_EMAIL/);
+  properties.set('TEST_EMAIL', 'test@example.com');
+  context.sendTaxiTestMail();
+  assert.equal(state.mails[0].to, 'test@example.com');
+  assert.equal(state.rows.length, 0);
+  assert.doesNotMatch(JSON.stringify(state.logs), /test@example\.com/);
+});
 
 test('fare: fixed per address through 5 km, only excess distance charged, cent rounding', () => {
   const { context } = gas();
