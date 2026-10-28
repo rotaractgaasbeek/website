@@ -7,10 +7,8 @@
   const storageKey = "rotaract-google-ads-consent-v1";
   const maxChoiceAge = 180 * 24 * 60 * 60 * 1000;
   const denied = {
-    ad_storage: "denied",
-    ad_user_data: "denied",
-    ad_personalization: "denied",
-    analytics_storage: "denied",
+    ad_storage: "denied", ad_user_data: "denied",
+    ad_personalization: "denied", analytics_storage: "denied",
   };
 
   function savedChoice() {
@@ -34,17 +32,13 @@
 
   function enableAds() {
     if (document.querySelector("script[data-rotaract-google-ads]")) return;
-
-    window.dataLayer = window.dataLayer || [];
-    window.gtag = function () { window.dataLayer.push(arguments); };
-    window.gtag("consent", "default", denied);
+    if (typeof window.gtag !== "function") return;
     window.gtag("consent", "update", {
       ad_storage: "granted",
       ad_user_data: "granted",
       ad_personalization: "denied",
       analytics_storage: "denied",
     });
-    window.gtag("js", new Date());
     window.gtag("config", tagId, { allow_ad_personalization_signals: false });
 
     const script = document.createElement("script");

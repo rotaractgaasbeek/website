@@ -5,6 +5,7 @@ const path = require('node:path');
 const vm = require('node:vm');
 
 const root = path.join(__dirname, '..');
+const bootstrapSource = fs.readFileSync(path.join(root, 'assets/js/google-tag-bootstrap.js'), 'utf8');
 const consentSource = fs.readFileSync(path.join(root, 'assets/js/google-consent.js'), 'utf8');
 const mainSource = fs.readFileSync(path.join(root, 'assets/js/main.js'), 'utf8');
 const contactSource = mainSource.slice(
@@ -44,7 +45,9 @@ function consentPage(label = '') {
     setItem(key, value) { storage.set(key, value); },
   };
   const script = consentSource.replace(/const contactConversionLabel = "[^"]*";/, `const contactConversionLabel = "${label}";`);
-  vm.runInNewContext(script, { document, window, localStorage, Date });
+  const context = vm.createContext({ document, window, localStorage, Date });
+  vm.runInContext(bootstrapSource, context);
+  vm.runInContext(script, context);
   return { window, controls, appendedScripts, banner };
 }
 
@@ -52,6 +55,9 @@ test('Google Ads is not loaded without a choice or after refusal, and conversion
   const page = consentPage('TEST_LABEL');
   assert.equal(page.banner.hidden, false);
   assert.equal(page.appendedScripts.length, 0);
+  assert.equal(page.window.dataLayer[0][0], 'consent');
+  assert.equal(page.window.dataLayer[0][1], 'default');
+  for (const value of Object.values(page.window.dataLayer[0][2])) assert.equal(value, 'denied');
   page.window.rotaractTrackContactConversion();
   assert.equal(page.appendedScripts.length, 0);
   page.controls.get('[data-cookie-deny]').click();
@@ -69,6 +75,8 @@ test('only a configured conversion label can send a conversion after consent', (
   const configured = consentPage('TEST_LABEL');
   configured.controls.get('[data-cookie-allow]').click();
   configured.window.rotaractTrackContactConversion();
+  assert.equal(configured.appendedScripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=AW-18456720108');
+  assert.deepEqual(Array.from(configured.window.dataLayer, item => item[0]), ['consent', 'js', 'consent', 'config', 'event']);
   const events = configured.window.dataLayer.filter(item => item[0] === 'event');
   assert.equal(events.length, 1);
   assert.equal(events[0][1], 'conversion');
@@ -127,6 +135,7 @@ test('a contact conversion follows only a valid, genuinely delivered form', asyn
 test('each website page offers the same consent-controlled Google Ads loader', () => {
   const pages = fs.readdirSync(root).filter(name => name.endsWith('.html'));
   for (const page of pages) {
-    assert.match(fs.readFileSync(path.join(root, page), 'utf8'), /<script defer src="assets\/js\/google-consent\.js"><\/script>/, page);
+    const html = fs.readFileSync(path.join(root, page), 'utf8');
+    assert.match(html, /<script src="assets\/js\/google-tag-bootstrap\.js"><\/script>\s*<script defer src="assets\/js\/google-consent\.js"><\/script>/, page);
   }
 });
