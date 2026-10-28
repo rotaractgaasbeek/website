@@ -5,23 +5,13 @@
   // Google Ads: Leadformulier indienen. Alleen versturen na bevestigde contactmail.
   const contactConversionLabel = "IB_UCILo3pgdEOzl7OBE";
   const storageKey = "rotaract-google-ads-consent-v1";
-  const maxChoiceAge = 180 * 24 * 60 * 60 * 1000;
   const denied = {
     ad_storage: "denied", ad_user_data: "denied",
     ad_personalization: "denied", analytics_storage: "denied",
   };
 
   function savedChoice() {
-    try {
-      const stored = JSON.parse(localStorage.getItem(storageKey) || "null");
-      if (
-        (stored?.value === "granted" || stored?.value === "denied") &&
-        Number.isFinite(stored.savedAt) &&
-        Date.now() - stored.savedAt < maxChoiceAge &&
-        stored.savedAt <= Date.now()
-      ) return stored.value;
-    } catch { /* A blocked storage API must not load the Ads tag. */ }
-    return null;
+    return window.rotaractGoogleAdsSavedChoice?.() || null;
   }
 
   function storeChoice(value) {
@@ -30,26 +20,7 @@
     } catch { /* Consent still applies to this page if storage is unavailable. */ }
   }
 
-  function enableAds() {
-    if (document.querySelector("script[data-rotaract-google-ads]")) return;
-    if (typeof window.gtag !== "function") return;
-    window.gtag("consent", "update", {
-      ad_storage: "granted",
-      ad_user_data: "granted",
-      ad_personalization: "denied",
-      analytics_storage: "denied",
-    });
-    window.gtag("config", tagId, { allow_ad_personalization_signals: false });
-
-    const script = document.createElement("script");
-    script.async = true;
-    script.dataset.rotaractGoogleAds = "";
-    script.src = `https://www.googletagmanager.com/gtag/js?id=${tagId}`;
-    document.head.append(script);
-  }
-
   let choice = savedChoice();
-  if (choice === "granted") enableAds();
 
   window.rotaractTrackContactConversion = function () {
     if (choice !== "granted" || !contactConversionLabel || typeof window.gtag !== "function") return;
@@ -73,14 +44,14 @@
 
   const banner = document.createElement("section");
   banner.className = "cookie-banner";
-  banner.setAttribute("aria-label", "Keuze voor advertentiemeting");
+  banner.setAttribute("aria-label", "Keuze voor advertentiecookies");
   banner.innerHTML = `
     <div class="cookie-banner__text">
-      <h2>Mag Google Ads bezoeken meten?</h2>
-      <p>Met jouw toestemming laden we de Google Ads-tag om te zien hoe onze advertenties werken. Zonder toestemming laden we die niet. We gebruiken deze keuze niet voor gepersonaliseerde advertenties. <a href="privacy.html">Lees ons cookiebeleid</a>.</p>
+      <h2>Advertentiecookies toestaan?</h2>
+      <p>De Google Ads-tag laadt meteen en kan ook zonder toestemming beperkte signalen zonder advertentiecookies naar Google sturen. Met jouw toestemming mag Google advertentiecookies gebruiken om onze advertenties te meten. We gebruiken deze keuze niet voor gepersonaliseerde advertenties. <a href="privacy.html">Lees ons cookiebeleid</a>.</p>
     </div>
     <div class="cookie-banner__actions">
-      <button class="cookie-banner__button cookie-banner__button--secondary" type="button" data-cookie-deny>Alleen noodzakelijk</button>
+      <button class="cookie-banner__button cookie-banner__button--secondary" type="button" data-cookie-deny>Geen advertentiecookies</button>
       <button class="cookie-banner__button cookie-banner__button--primary" type="button" data-cookie-allow>Meting toestaan</button>
       <button class="cookie-banner__close" type="button" data-cookie-close aria-label="Cookiekeuze sluiten" hidden>Sluiten</button>
     </div>
@@ -101,14 +72,17 @@
     banner.hidden = true;
     settings.hidden = false;
     if (value === "granted") {
-      enableAds();
-      settings.focus();
-    } else if (previous === "granted") {
-      window.gtag?.("consent", "update", denied);
-      window.location.reload();
+      window.gtag?.("consent", "update", {
+        ad_storage: "granted",
+        ad_user_data: "granted",
+        ad_personalization: "denied",
+        analytics_storage: "denied",
+      });
     } else {
-      settings.focus();
+      window.gtag?.("consent", "update", denied);
     }
+    if (previous === "granted" && value === "denied") window.location.reload();
+    else settings.focus();
   }
 
   banner.querySelector("[data-cookie-deny]").addEventListener("click", () => choose("denied"));

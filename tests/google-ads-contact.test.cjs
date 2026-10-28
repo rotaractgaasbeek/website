@@ -13,10 +13,11 @@ const contactSource = mainSource.slice(
   mainSource.indexOf('const interestForm = document.querySelector("[data-interest-form]");'),
 );
 
-function consentPage(label = '') {
+function consentPage(label = '', savedValue = null) {
   const controls = new Map();
-  const appendedScripts = [];
   const storage = new Map();
+  if (savedValue) storage.set('rotaract-google-ads-consent-v1', JSON.stringify({ value: savedValue, savedAt: Date.now() }));
+  let reloads = 0;
   const footer = { append() {} };
   const banner = {
     hidden: false,
@@ -29,17 +30,15 @@ function consentPage(label = '') {
   const document = {
     querySelector(selector) {
       if (selector === '.site-footer .footer-links:last-child') return footer;
-      if (selector === 'script[data-rotaract-google-ads]') return appendedScripts[0] || null;
       return null;
     },
     createElement(tag) {
       if (tag === 'section') return banner;
       return { dataset: {}, classList: { add() {} }, addEventListener() {}, focus() {} };
     },
-    head: { append(script) { appendedScripts.push(script); } },
     body: { append() {} },
   };
-  const window = { location: { reload() {} } };
+  const window = { location: { reload() { reloads += 1; } } };
   const localStorage = {
     getItem(key) { return storage.get(key) || null; },
     setItem(key, value) { storage.set(key, value); },
@@ -48,40 +47,61 @@ function consentPage(label = '') {
   const context = vm.createContext({ document, window, localStorage, Date });
   vm.runInContext(bootstrapSource, context);
   vm.runInContext(script, context);
-  return { window, controls, appendedScripts, banner };
+  return { window, controls, banner, storage, get reloads() { return reloads; } };
 }
 
-test('Google Ads is not loaded without a choice or after refusal, and conversion needs consent', () => {
+test('Google Ads is configured on first load with denied consent, and conversion needs consent', () => {
   const page = consentPage('TEST_LABEL');
   assert.equal(page.banner.hidden, false);
-  assert.equal(page.appendedScripts.length, 0);
   assert.equal(page.window.dataLayer[0][0], 'consent');
   assert.equal(page.window.dataLayer[0][1], 'default');
   for (const value of Object.values(page.window.dataLayer[0][2])) assert.equal(value, 'denied');
+  assert.deepEqual(Array.from(page.window.dataLayer, item => item[0]), ['consent', 'set', 'js', 'config']);
+  assert.equal(page.window.dataLayer[1][1], 'ads_data_redaction');
+  assert.equal(page.window.dataLayer[1][2], true);
+  assert.equal(page.window.dataLayer[3][1], 'AW-18456720108');
+  assert.equal(page.window.dataLayer[3][2].allow_ad_personalization_signals, false);
+  assert.match(page.banner.innerHTML, /kan ook zonder toestemming beperkte signalen/);
   page.window.rotaractTrackContactConversion();
-  assert.equal(page.appendedScripts.length, 0);
+  assert.equal(page.window.dataLayer.filter(item => item[0] === 'event').length, 0);
   page.controls.get('[data-cookie-deny]').click();
   page.window.rotaractTrackContactConversion();
-  assert.equal(page.appendedScripts.length, 0);
+  assert.equal(page.window.dataLayer.filter(item => item[0] === 'event').length, 0);
+  assert.equal(page.window.dataLayer.at(-1)[2].ad_storage, 'denied');
 });
 
 test('only a configured conversion label can send a conversion after consent', () => {
   const missingLabel = consentPage();
   missingLabel.controls.get('[data-cookie-allow]').click();
   missingLabel.window.rotaractTrackContactConversion();
-  assert.equal(missingLabel.appendedScripts.length, 1);
   assert.equal(missingLabel.window.dataLayer.filter(item => item[0] === 'event').length, 0);
 
   const configured = consentPage('TEST_LABEL');
   configured.controls.get('[data-cookie-allow]').click();
   configured.window.rotaractTrackContactConversion();
-  assert.equal(configured.appendedScripts[0].src, 'https://www.googletagmanager.com/gtag/js?id=AW-18456720108');
-  assert.deepEqual(Array.from(configured.window.dataLayer, item => item[0]), ['consent', 'js', 'consent', 'config', 'event']);
+  assert.deepEqual(Array.from(configured.window.dataLayer, item => item[0]), ['consent', 'set', 'js', 'config', 'consent', 'event']);
+  assert.equal(configured.window.dataLayer[4][2].ad_storage, 'granted');
+  assert.equal(configured.window.dataLayer[4][2].ad_personalization, 'denied');
   const events = configured.window.dataLayer.filter(item => item[0] === 'event');
   assert.equal(events.length, 1);
   assert.equal(events[0][1], 'conversion');
   assert.equal(events[0][2].send_to, 'AW-18456720108/TEST_LABEL');
   assert.deepEqual(Object.keys(events[0][2]), ['send_to']);
+});
+
+test('saved consent is applied before the first tag configuration and can be withdrawn', () => {
+  const page = consentPage('TEST_LABEL', 'granted');
+  assert.equal(page.banner.hidden, true);
+  assert.deepEqual(Array.from(page.window.dataLayer, item => item[0]), ['consent', 'set', 'consent', 'js', 'config']);
+  assert.equal(page.window.dataLayer[2][1], 'update');
+  assert.equal(page.window.dataLayer[2][2].ad_storage, 'granted');
+  page.window.rotaractTrackContactConversion();
+  assert.equal(page.window.dataLayer.filter(item => item[0] === 'event').length, 1);
+  page.controls.get('[data-cookie-deny]').click();
+  assert.equal(page.window.dataLayer.at(-1)[2].ad_storage, 'denied');
+  assert.equal(page.reloads, 1);
+  page.window.rotaractTrackContactConversion();
+  assert.equal(page.window.dataLayer.filter(item => item[0] === 'event').length, 1);
 });
 
 test('the production contact conversion uses the label from Google Ads', () => {
@@ -132,10 +152,10 @@ test('a contact conversion follows only a valid, genuinely delivered form', asyn
   assert.match(success.status, /naar de club verstuurd/);
 });
 
-test('each website page offers the same consent-controlled Google Ads loader', () => {
+test('each website page loads the Google tag immediately after denied consent defaults', () => {
   const pages = fs.readdirSync(root).filter(name => name.endsWith('.html'));
   for (const page of pages) {
     const html = fs.readFileSync(path.join(root, page), 'utf8');
-    assert.match(html, /<script src="assets\/js\/google-tag-bootstrap\.js"><\/script>\s*<script defer src="assets\/js\/google-consent\.js"><\/script>/, page);
+    assert.match(html, /<script src="assets\/js\/google-tag-bootstrap\.js"><\/script>\s*<script async src="https:\/\/www\.googletagmanager\.com\/gtag\/js\?id=AW-18456720108"><\/script>\s*<script defer src="assets\/js\/google-consent\.js"><\/script>/, page);
   }
 });

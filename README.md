@@ -32,13 +32,15 @@ met een duidelijke beschikbaarheidsmelding.
 
 ## Google Ads-conversie voor het contactformulier
 
-De Google Ads-tag gebruikt de basisvariant van Consent Mode v2: elke pagina zet
-synchroon in de `<head>` alle vier toestemmingen standaard op `denied` via
-[`assets/js/google-tag-bootstrap.js`](assets/js/google-tag-bootstrap.js). De
-externe `gtag.js` wordt pas geladen nadat iemand **Meting toestaan** kiest.
-Dit betekent dat een automatische installatietest zonder die keuze de tag
-mogelijk niet vindt. Test via Google Tag Assistant op de live website, kies
-**Meting toestaan** en controleer daarna de tag `AW-18456720108`.
+De Google Ads-tag gebruikt de geavanceerde variant van Consent Mode v2. Elke
+pagina zet synchroon in de `<head>` alle vier toestemmingen standaard op
+`denied` via [`assets/js/google-tag-bootstrap.js`](assets/js/google-tag-bootstrap.js),
+en laadt daarna direct `gtag.js` met ID `AW-18456720108`. Bij een eerder
+opgeslagen toestemming wordt de keuze nog vóór de eerste configuratie toegepast.
+Zonder toestemming kan Google beperkte signalen zonder advertentiecookies
+ontvangen; advertentiecookies blijven geweigerd. Test de tag op de gepubliceerde
+website via Google Tag Assistant en controleer of de keuze voor advertentiecookies
+correct wordt overgenomen.
 
 Een contactconversie
 wordt alleen verstuurd als het formulier geldig is én de server bevestigt dat de
