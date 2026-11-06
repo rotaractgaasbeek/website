@@ -3054,7 +3054,11 @@ textarea {
   }
 }
 
-/* First photo selection for the completed RAC GP 2026. */
+#fotos {
+  scroll-margin-top: 76px;
+}
+
+/* Photo galleries for event recaps. */
 .rally-gallery {
   columns: 3;
   column-gap: 1.25rem;
@@ -3083,6 +3087,97 @@ textarea {
   height: auto;
 }
 
+.site-dialog {
+  position: fixed;
+  margin: auto;
+  border: 0;
+  border-radius: var(--radius);
+}
+
+.site-dialog::backdrop {
+  background: rgba(24, 33, 44, 0.84);
+}
+
+body:has(.site-dialog[open]) {
+  overflow: hidden;
+}
+
+.site-dialog__close {
+  position: absolute;
+  top: 0.75rem;
+  right: 0.75rem;
+}
+
+.site-dialog__close,
+.rally-lightbox__arrow {
+  display: grid;
+  place-items: center;
+  width: 3rem;
+  height: 3rem;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.site-dialog__close:focus-visible,
+.rally-lightbox__arrow:focus-visible {
+  outline: 3px solid var(--cranberry);
+  outline-offset: 2px;
+}
+
+.rally-lightbox {
+  width: min(100% - 1rem, 1100px);
+  padding: 4.5rem 0.75rem 0.75rem;
+  background: var(--ink);
+}
+
+.rally-lightbox img {
+  width: 100%;
+  height: min(72dvh, calc(100dvh - 11rem));
+  object-fit: contain;
+}
+
+.rally-lightbox__navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 0.75rem;
+  color: var(--paper);
+}
+
+.rally-lightbox__count {
+  min-width: 8ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.deadline-popup {
+  width: min(100% - 2rem, 520px);
+  max-height: calc(100dvh - 2rem);
+  padding: 3.25rem clamp(1.25rem, 5vw, 2.5rem) 2rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+.deadline-popup .section-title {
+  font-size: clamp(1.85rem, 5vw, 2.8rem);
+}
+
+.deadline-popup time {
+  color: var(--cranberry);
+  white-space: nowrap;
+}
+
+.deadline-popup .button {
+  margin-top: 0.75rem;
+}
 
 @media (max-width: 900px) {
   .rally-gallery { columns: 2; }
